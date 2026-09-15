@@ -1,0 +1,6 @@
+{
+  "name": "RIDA Field Tracker — Lubumbashi",
+  "description": "Application de suivi terrain et d'activation de la campagne RIDA-Installation à Lubumbashi, synchronisée en temps réel avec Google Sheets.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
