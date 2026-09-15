@@ -33,7 +33,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   if (!isOpen) return null;
 
   // RIDA metrics
-  const totalInstallations = todayLeads.length;
+  const totalContacts = todayLeads.filter(l => l.action_type === 'Contact').length;
+  const totalChauffeurs = todayLeads.filter(l => l.action_type === 'Chauffeur inscrit' || l.client_type === 'Chauffeur / Conducteur').length;
+  const totalDownloads = todayLeads.filter(l => l.action_type === 'Téléchargement appli' || l.action_type.includes('Installation')).length;
+  const totalInstallations = totalDownloads;
   const androidCount = todayLeads.filter(l => l.os_type === 'Android' || !l.os_type).length;
   const iosCount = todayLeads.filter(l => l.os_type === 'iOS').length;
   const passengerCount = todayLeads.filter(l => l.client_type === 'Passager' || !l.client_type).length;
@@ -135,6 +138,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       shop_id: shopIdToUse,
       shop_name: shopName,
       total_installations: totalInstallations,
+      total_contacts: totalContacts,
+      total_chauffeurs: totalChauffeurs,
+      total_downloads: totalDownloads,
       android_count: androidCount,
       ios_count: iosCount,
       passenger_count: passengerCount,
@@ -198,10 +204,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
         <div className="text-center mb-5">
           <span className="text-[10px] font-black uppercase tracking-wider text-[#00D084] bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 inline-block mb-1.5">
-            Campagne RIDA-Installation
+            Campagne RIDA-Lancement
           </span>
           <h2 className="text-xl font-black text-white tracking-tight">
-            Clôture de Session <span className="text-[#00D084]">Journalière</span>
+            Rapport <span className="text-[#00D084]">journalier</span>
           </h2>
           <p className="text-xs text-gray-400 font-medium mt-0.5">Lubumbashi • Synthèse & Rapport PDF officiel</p>
         </div>
@@ -224,16 +230,16 @@ export const ReportModal: React.FC<ReportModalProps> = ({
           {/* RIDA Performance Stats */}
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-emerald-500/10 border border-[#00D084]/30 p-3 rounded-xl">
-              <span className="text-[9px] font-black uppercase text-emerald-400 block">Total Install.</span>
-              <p className="text-xl font-black text-white mt-0.5">{totalInstallations}</p>
+              <span className="text-[9px] font-black uppercase text-emerald-400 block">Contacts</span>
+              <p className="text-xl font-black text-white mt-0.5">{totalContacts}</p>
             </div>
             <div className="bg-white/[0.04] border border-white/10 p-3 rounded-xl">
-              <span className="text-[9px] font-black uppercase text-gray-400 block">Android</span>
-              <p className="text-xl font-black text-emerald-400 mt-0.5">{androidCount}</p>
+              <span className="text-[9px] font-black uppercase text-gray-400 block">Chauffeurs</span>
+              <p className="text-xl font-black text-emerald-400 mt-0.5">{totalChauffeurs}</p>
             </div>
             <div className="bg-white/[0.04] border border-white/10 p-3 rounded-xl">
-              <span className="text-[9px] font-black uppercase text-gray-400 block">iOS (Apple)</span>
-              <p className="text-xl font-black text-sky-400 mt-0.5">{iosCount}</p>
+              <span className="text-[9px] font-black uppercase text-gray-400 block">Téléchargements</span>
+              <p className="text-xl font-black text-sky-400 mt-0.5">{totalDownloads}</p>
             </div>
           </div>
 

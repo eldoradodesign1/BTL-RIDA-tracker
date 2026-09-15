@@ -1,5 +1,5 @@
 /**
- * Base de données Google Sheets & stockage local temps réel pour BTL Vodacom Tracker
+ * Base de données Google Sheets & stockage local temps réel pour BTL RIDA Field Tracker
  */
 
 import type {
@@ -51,6 +51,15 @@ const STORAGE_KEYS = {
 
 // Données initiales pour la campagne Marchands
 const DEFAULT_CAMPAIGNS: Campaign[] = [
+  {
+    id: 'camp-rida-lancement-001',
+    code: 'rida-lancement',
+    name: 'RIDA-Lancement',
+    campaign_type: 'rida_installation',
+    status: 'active',
+    starts_on: '2026-09-01',
+    ends_on: '2026-12-31'
+  },
   {
     id: 'camp-merchant-001',
     code: 'merchant-educational-campaign',
@@ -226,6 +235,7 @@ let memoryStore = {
   youth_daily_assignments: loadLocalList<YouthDailyAssignment>(STORAGE_KEYS.YOUTH_ASSIGNMENTS, []),
   youth_daily_attendance: loadLocalList<YouthDailyAttendance>(STORAGE_KEYS.YOUTH_ATTENDANCE, []),
   user_campaign_assignments: loadLocalList<any>(STORAGE_KEYS.USERS_CAMPAIGNS, [
+    { user_id: 'agt-test-ba-herve-0821000001', campaign_id: 'camp-rida-lancement-001', is_active: true },
     { user_id: 'agt-test-ba-herve-0821000001', campaign_id: 'camp-merchant-001', is_active: true },
     { user_id: 'agt-test-ba-herve-0821000001', campaign_id: 'camp-youth-001', is_active: true }
   ])
@@ -296,8 +306,7 @@ export async function reloadFromGoogleSheets(): Promise<boolean> {
 }
 
 /**
- * Adaptateur de requête qui reproduit l'interface Supabase client
- * mais opère instantanément sur le store local & Google Sheets !
+ * Adaptateur de requête uniforme pour le store local et Google Sheets.
  */
 class TableQueryBuilder {
   private tableName: string;

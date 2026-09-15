@@ -37,7 +37,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
   const [phoneBrand, setPhoneBrand] = useState('Samsung');
   const [customBrand, setCustomBrand] = useState('');
   const [clientType, setClientType] = useState<RidaClientType>('Passager');
-  const [actionType, setActionType] = useState<string>('Installation Réussie');
+  const [actionType, setActionType] = useState<string>('Contact');
   const [promoCode, setPromoCode] = useState('');
   const [notes, setNotes] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -128,10 +128,10 @@ export const LeadModal: React.FC<LeadModalProps> = ({
         <div className="text-center mb-5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider mb-2">
             <Sparkles className="w-3 h-3" />
-            <span>Campagne RIDA-Installation</span>
+            <span>Campagne RIDA-Lancement</span>
           </div>
           <h2 className="text-xl font-black text-white tracking-tight">
-            Nouvelle Activation <span className="text-[#00D084]">RIDA</span>
+            Nouvelle transaction <span className="text-[#00D084]">RIDA</span>
           </h2>
           <p className="text-xs text-gray-400 font-medium mt-0.5">Lubumbashi • Enregistrement de l'application installée</p>
         </div>
@@ -298,17 +298,16 @@ export const LeadModal: React.FC<LeadModalProps> = ({
             </div>
           </div>
 
-          {/* Type d'Action / État de l'activation */}
+          {/* Type de transaction RIDA */}
           <div>
             <label className="text-[11px] font-black uppercase tracking-wide text-gray-300 block mb-1">
-              Statut de la Conversion
+              Type de transaction
             </label>
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                'Installation Réussie',
-                'Installation & Inscription',
-                'Installation & 1ère Course',
-                'Contact Intéressé'
+                'Contact',
+                'Chauffeur inscrit',
+                'Téléchargement appli'
               ].map((act) => (
                 <button
                   type="button"

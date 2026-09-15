@@ -79,6 +79,11 @@ export const AgentView: React.FC<AgentViewProps> = ({
     .filter(agent => agent.total > 0)
     .sort((a, b) => b.total - a.total);
   const myTodayTotal = globalActivityRanking.find(agent => agent.id === currentUser.id)?.total ?? todayLeads.length;
+  const kpiItems = [
+    { label: 'Contacts', target: 40, value: todayLeads.filter(l => l.action_type === 'Contact').length },
+    { label: 'Chauffeurs', target: 5, value: todayLeads.filter(l => l.action_type === 'Chauffeur inscrit' || l.client_type === 'Chauffeur / Conducteur').length },
+    { label: 'Téléchargements', target: 8, value: todayLeads.filter(l => l.action_type === 'Téléchargement appli' || l.action_type.includes('Installation')).length },
+  ];
   const myTodayRank = myTodayTotal > 0 ? globalActivityRanking.findIndex(agent => agent.id === currentUser.id) + 1 : 0;
   const podiumTier = myTodayRank === 1 ? 'gold' : (myTodayRank === 2 ? 'silver' : (myTodayRank === 3 ? 'bronze' : null));
   const podiumLabel = myTodayTotal > 0 ? `#${myTodayRank}` : 'Non classé';
@@ -225,10 +230,10 @@ export const AgentView: React.FC<AgentViewProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight">
-              Mes <span className="text-[#00D084]">Installations</span>
+              Mes <span className="text-teal-300">prospects</span>
             </h1>
             <p className="text-xs font-semibold text-gray-400 mt-0.5">
-              Historique complet des activations RIDA ({allAgentLeads.length})
+              Contacts et transactions enregistrés ({allAgentLeads.length})
             </p>
           </div>
 
@@ -293,7 +298,7 @@ export const AgentView: React.FC<AgentViewProps> = ({
           </div>
 
           <div className="flex space-x-2 overflow-x-auto pb-1">
-            {['ALL', 'Android', 'iOS', 'Passager', 'Chauffeur'].map(f => (
+            {['ALL', 'Contact', 'Chauffeur inscrit', 'Téléchargement appli'].map(f => (
               <button
                 key={f}
                 onClick={() => setClientActionFilter(f)}
@@ -303,7 +308,7 @@ export const AgentView: React.FC<AgentViewProps> = ({
                     : 'bg-white/5 text-gray-400 border-white/10 hover:text-white'
                 }`}
               >
-                {f === 'ALL' ? 'Toutes les catégories' : f}
+                {f === 'ALL' ? 'Toutes les transactions' : f}
               </button>
             ))}
           </div>
@@ -373,7 +378,7 @@ export const AgentView: React.FC<AgentViewProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight">
-              Mes <span className="text-amber-400">Archives</span>
+              Mes <span className="text-teal-300">archives</span>
             </h1>
             <p className="text-xs font-semibold text-gray-400 mt-0.5">
               Historique de tous vos rapports journaliers présentés ({agentReports.length})
@@ -404,7 +409,7 @@ export const AgentView: React.FC<AgentViewProps> = ({
               <div key={rep.id} className="glass-card p-4 border border-white/10 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-[9px] font-black uppercase text-amber-400 block">Rapport Clôturé</span>
+                    <span className="text-[9px] font-black uppercase text-teal-300 block">Rapport présenté</span>
                     <h3 className="text-xs font-black uppercase text-white">{rep.date}</h3>
                     <p className="text-[10px] text-gray-400 font-bold uppercase">{rep.shop_name}</p>
                   </div>
@@ -421,16 +426,16 @@ export const AgentView: React.FC<AgentViewProps> = ({
                 {/* Report Key Stats */}
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold">
                   <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
-                    <span className="text-[8px] text-emerald-400 uppercase block">Total Install.</span>
-                    <span className="text-[#00D084] text-xs font-black">{rep.total_installations ?? (rep.priv + rep.roam + rep.bund)}</span>
+                    <span className="text-[8px] text-emerald-400 uppercase block">Contacts</span>
+                    <span className="text-[#00D084] text-xs font-black">{rep.total_contacts ?? 0}</span>
                   </div>
                   <div className="bg-white/5 p-2 rounded-xl border border-white/5">
-                    <span className="text-[8px] text-gray-400 uppercase block">Android</span>
-                    <span className="text-emerald-400 text-xs font-black">{rep.android_count ?? rep.priv}</span>
+                    <span className="text-[8px] text-gray-400 uppercase block">Chauffeurs</span>
+                    <span className="text-emerald-400 text-xs font-black">{rep.total_chauffeurs ?? 0}</span>
                   </div>
                   <div className="bg-white/5 p-2 rounded-xl border border-white/5">
-                    <span className="text-[8px] text-gray-400 uppercase block">iOS (Apple)</span>
-                    <span className="text-sky-400 text-xs font-black">{rep.ios_count ?? rep.roam}</span>
+                    <span className="text-[8px] text-gray-400 uppercase block">Téléchargements</span>
+                    <span className="text-sky-400 text-xs font-black">{rep.total_downloads ?? rep.total_installations ?? 0}</span>
                   </div>
                 </div>
 
@@ -539,6 +544,17 @@ export const AgentView: React.FC<AgentViewProps> = ({
         </div>
       )}
 
+      <section className="grid grid-cols-3 gap-2">
+        {kpiItems.map((item) => {
+          const progress = Math.min(100, Math.round((item.value / item.target) * 100));
+          return <div key={item.label} className="glass-card p-3 border border-white/10 rounded-2xl">
+            <p className="text-[9px] font-black uppercase tracking-wide text-gray-400">{item.label}</p>
+            <div className="mt-1 flex items-end justify-between gap-1"><strong className="text-xl font-black text-white">{item.value}</strong><span className="text-[10px] font-bold text-gray-500">/{item.target}</span></div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-teal-300 transition-all" style={{ width: `${progress}%` }} /></div>
+          </div>;
+        })}
+      </section>
+
       {/* Quick Action Grid */}
       <div className="grid grid-cols-2 gap-4">
         <button
@@ -551,8 +567,8 @@ export const AgentView: React.FC<AgentViewProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-[#00D084] flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(16,185,129,0.2)]">
             <UserPlus className="w-6 h-6" />
           </div>
-          <span className="text-xs font-black uppercase text-white">{reportDone ? 'Session clôturée' : 'Installation RIDA'}</span>
-          <span className="text-[9px] text-gray-400 font-semibold">{reportDone ? 'Rapport déjà envoyé' : 'Android • iOS • Chauffeur'}</span>
+          <span className="text-xs font-black uppercase text-white">{reportDone ? 'Session clôturée' : 'Enregistrer un client'}</span>
+          <span className="text-[9px] text-gray-400 font-semibold">{reportDone ? 'Rapport déjà envoyé' : 'Contact • chauffeur • appli'}</span>
         </button>
 
         <button
@@ -568,7 +584,7 @@ export const AgentView: React.FC<AgentViewProps> = ({
           <span className="text-xs font-black uppercase text-white">
             {reportDone ? 'Session Clôturée' : 'Mon Rapport'}
           </span>
-          <span className="text-[9px] text-gray-400 font-semibold">PDF RIDA Lubumbashi</span>
+          <span className="text-[9px] text-gray-400 font-semibold">Rapport journalier RIDA</span>
         </button>
       </div>
 

@@ -2,16 +2,7 @@ import { User, UserRole, Shop, Checkin, Lead, DailyReport, NotificationItem, Cha
 import { INITIAL_SHOPS, INITIAL_USERS, INITIAL_CHECKINS, INITIAL_LEADS, INITIAL_REPORTS, INITIAL_NOTIFICATIONS, INITIAL_CHAT } from '../data/initialData';
 import type { PDFReportData } from './pdfGenerator';
 import { SHARED_CHAT_STORE } from '../sharedChatStore';
-import {
-  isSupabaseConfigured,
-  syncLocalDataToSupabase,
-  uploadPhotoToSupabase,
-  fetchReportsFromSupabase,
-  fetchCheckinsFromSupabase,
-  fetchUsersFromSupabase,
-  fetchShopsFromSupabase,
-  fetchLeadsFromSupabase
-} from './supabase';
+import { fetchTableFromGoogleSheets, syncLocalDataToGoogleSheets } from './appScriptApi';
 
 
 const API_BASE_URL = '';
@@ -39,8 +30,8 @@ const STORAGE_KEYS = {
 };
 
 const memoryStore = new Map<string, unknown>();
-const OFFLINE_OUTBOX_KEY = 'btl_supabase_outbox_v1';
-type OfflinePayload = Parameters<typeof syncLocalDataToSupabase>[0];
+const OFFLINE_OUTBOX_KEY = 'btl_google_sheets_outbox_v1';
+type OfflinePayload = Parameters<typeof syncLocalDataToGoogleSheets>[0];
 
 function readOfflineOutbox(): OfflinePayload[] {
   try {
@@ -59,13 +50,13 @@ function enqueueOfflinePayload(payload: OfflinePayload): void {
 }
 
 export async function flushOfflineOutbox(): Promise<void> {
-  if (!isSupabaseConfigured() || (typeof navigator !== 'undefined' && !navigator.onLine)) return;
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
   const queued = readOfflineOutbox();
   if (!queued.length) return;
   const remaining: OfflinePayload[] = [];
   for (const payload of queued) {
     try {
-      await syncLocalDataToSupabase(payload);
+      await syncLocalDataToGoogleSheets(payload);
     } catch {
       remaining.push(payload);
     }
@@ -75,11 +66,11 @@ export async function flushOfflineOutbox(): Promise<void> {
 }
 
 function persistOrQueue(payload: OfflinePayload): void {
-  if (!isSupabaseConfigured() || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
     enqueueOfflinePayload(payload);
     return;
   }
-  void syncLocalDataToSupabase(payload).catch(() => enqueueOfflinePayload(payload));
+  void syncLocalDataToGoogleSheets(payload).catch(() => enqueueOfflinePayload(payload));
 }
 
 const SHARED_API_BASE = (() => {
@@ -147,7 +138,7 @@ function maybeShowBrowserNotification(message: string): void {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (window.Notification.permission !== 'granted') return;
   try {
-    new window.Notification('Vodacom Tracker', { body: message, icon: '/favicon.svg' });
+    new window.Notification('RIDA Field Tracker', { body: message, icon: '/favicon.svg' });
   } catch {}
 }
 
@@ -160,16 +151,14 @@ function emitAppToast(message: string, level: 'success' | 'error' = 'success'): 
   } catch {}
 }
 
-function syncUserUpdateToSupabase(user: User): void {
+function syncUserUpdateToGoogleSheets(user: User): void {
   void (async () => {
     try {
-      if (!isSupabaseConfigured()) return;
-
-      await syncLocalDataToSupabase({
+            await syncLocalDataToGoogleSheets({
         users: [user]
       });
     } catch (error) {
-      console.warn('Supabase user sync failed', error);
+      console.warn('Google Sheets user sync failed', error);
     }
   })();
 }
@@ -558,18 +547,14 @@ export function saveUser(user: Omit<User, 'id'>): User {
   return newUser;
 }
 
-export async function refreshUsersFromSupabase(): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const users = await fetchUsersFromSupabase();
-  saveUsers(users);
+export async function refreshUsersFromGoogleSheets(): Promise<void> {
+  const users = await fetchTableFromGoogleSheets<User>('users');
+  if (users.length) saveUsers(users);
 }
 
-export async function refreshShopsFromSupabase(): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const shops = await fetchShopsFromSupabase();
-  saveShops(shops);
+export async function refreshShopsFromGoogleSheets(): Promise<void> {
+  const shops = await fetchTableFromGoogleSheets<Shop>('shops');
+  if (shops.length) saveShops(shops);
 }
 
 export function updateUserShopAssignment(userId: string, shopId: string): boolean {
@@ -597,7 +582,7 @@ export function updateUserShopAssignment(userId: string, shopId: string): boolea
     }
 
     emitAppToast(`Affectation mise à jour: ${before.name} → ${shop?.name || shopId}.`);
-    syncUserUpdateToSupabase(users[index]);
+    syncUserUpdateToGoogleSheets(users[index]);
 
     return true;
   }
@@ -626,7 +611,7 @@ export function updateUserSupervisor(userId: string, supervisorId: string): bool
     }
 
     emitAppToast(`Superviseur mis à jour pour ${target.name}.`);
-    syncUserUpdateToSupabase(users[index]);
+    syncUserUpdateToGoogleSheets(users[index]);
 
     return true;
   }
@@ -687,7 +672,7 @@ export function updateUserPassword(userId: string, oldPass: string, newPass: str
   users[index].password = cleanNew;
   saveItem(STORAGE_KEYS.USERS, users);
 
-  syncUserUpdateToSupabase(users[index]);
+  syncUserUpdateToGoogleSheets(users[index]);
 
   return { success: true, message: "Clé de sécurité mise à jour avec succès !" };
 }
@@ -818,10 +803,8 @@ export function getCheckins(): Checkin[] {
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-export async function refreshCheckinsFromSupabase(): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const rows = await fetchCheckinsFromSupabase();
+export async function refreshCheckinsFromGoogleSheets(): Promise<void> {
+  const rows = await fetchTableFromGoogleSheets<Checkin>('checkins');
 
   saveItem(
     STORAGE_KEYS.CHECKINS,
@@ -854,23 +837,9 @@ export function addCheckin(checkinData: Omit<Checkin, 'id'>): Checkin {
 
   console.log('ADDCHECKIN', newCheckin);
 
-  void (async () => {
-    try {
-      if (isSupabaseConfigured()) {
-        let nextCheckin: Checkin = { ...newCheckin };
-        if (newCheckin.type === 'IN' && typeof newCheckin.photo === 'string' && newCheckin.photo.startsWith('data:image')) {
-          const photoUrl = await uploadPhotoToSupabase(newCheckin.photo, 'photos', 'checkins');
-          nextCheckin = { ...nextCheckin, photo_drive_url: photoUrl, photo: null as unknown as string };
-        }
-
-        await syncLocalDataToSupabase({
-          checkins: [nextCheckin]
-        });
-      }
-    } catch (error) {
-      console.warn('Supabase checkin sync failed', error);
-    }
-  })();
+  void syncLocalDataToGoogleSheets({ checkins: [newCheckin] }).catch((error) => {
+    console.warn('Google Sheets checkin sync failed', error);
+  });
 
   return newCheckin;
 }
@@ -961,17 +930,13 @@ export function saveReports(reports: DailyReport[]): void {
   saveItem(STORAGE_KEYS.REPORTS, reports);
 }
 
-export async function refreshReportsFromSupabase(): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const reports = await fetchReportsFromSupabase();
+export async function refreshReportsFromGoogleSheets(): Promise<void> {
+  const reports = await fetchTableFromGoogleSheets<DailyReport>('daily_reports');
   saveReports(reports);
 }
 
-export async function refreshLeadsFromSupabase(): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const leads = await fetchLeadsFromSupabase();
+export async function refreshLeadsFromGoogleSheets(): Promise<void> {
+  const leads = await fetchTableFromGoogleSheets<Lead>('leads');
   saveLeads(leads);
 }
 

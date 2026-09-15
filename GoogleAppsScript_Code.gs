@@ -22,14 +22,14 @@
 
 // Configuration des tables et de leurs colonnes
 var SCHEMAS = {
-  'activations': ['id', 'timestamp', 'agent_id', 'agent_name', 'shop_id', 'client_name', 'msisdn', 'os_type', 'phone_brand', 'client_type', 'action_type', 'promo_code', 'notes', 'installation_proof_url', 'status'],
+  'campaigns': ['id', 'code', 'name', 'campaign_type', 'status', 'starts_on', 'ends_on'],
+  'user_campaign_assignments': ['user_id', 'campaign_id', 'is_active'],
   'leads': ['id', 'timestamp', 'agent_id', 'agent_name', 'shop_id', 'client_name', 'msisdn', 'os_type', 'phone_brand', 'client_type', 'action_type', 'promo_code', 'notes', 'installation_proof_url', 'status'],
   'hubs': ['id', 'name', 'city', 'lat', 'long', 'type'],
   'shops': ['id', 'name', 'city', 'lat', 'long', 'type'],
   'checkins': ['id', 'assignment_id', 'agent_id', 'agent_name', 'type', 'timestamp', 'lat', 'long', 'accuracy', 'photo', 'photo_drive_url', 'distance_m', 'geo_status', 'device', 'status'],
-  'daily_reports': ['id', 'date', 'agent_id', 'agent_name', 'shop_id', 'shop_name', 'total_installations', 'android_count', 'ios_count', 'passenger_count', 'driver_count', 'priv', 'roam', 'bund', 'amount', 'comment', 'pdf_url', 'photos', 'arrival_time', 'departure_time', 'pointage_photo', 'drive_pdf_url'],
+  'daily_reports': ['id', 'date', 'agent_id', 'agent_name', 'shop_id', 'shop_name', 'total_contacts', 'total_chauffeurs', 'total_downloads', 'total_installations', 'comment', 'photos', 'arrival_time', 'departure_time', 'pointage_photo', 'maps_in', 'maps_out', 'drive_pdf_url'],
   'users': ['id', 'phone', 'name', 'role', 'password', 'supervisorId', 'permanentShopId', 'userCategory', 'authUserId', 'created_at', 'last_login'],
-  'chat_messages': ['id', 'sender_id', 'sender_name', 'sender_role', 'message', 'timestamp', 'created_at', 'deleted', 'deleted_at', 'deleted_by', 'read_by'],
   'notifications': ['id', 'user_id', 'message', 'type', 'is_read', 'timestamp', 'deleted']
 };
 

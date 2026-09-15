@@ -253,7 +253,7 @@ export interface Lead {
   shop_id: string;
   client_name: string;
   msisdn: string;
-  action_type: 'Installation RIDA' | 'Opt-in Privilège' | 'Opt-in Roaming' | 'Activation Bundle' | string;
+  action_type: 'Contact' | 'Chauffeur inscrit' | 'Téléchargement appli' | 'Installation RIDA' | 'Opt-in Privilège' | 'Opt-in Roaming' | 'Activation Bundle' | string;
   os_type?: RidaOsType;
   phone_brand?: string;
   client_type?: RidaClientType | string;
@@ -273,6 +273,9 @@ export interface DailyReport {
   shop_id: string;
   shop_name: string;
   total_installations?: number;
+  total_contacts?: number;
+  total_chauffeurs?: number;
+  total_downloads?: number;
   android_count?: number;
   ios_count?: number;
   driver_count?: number;

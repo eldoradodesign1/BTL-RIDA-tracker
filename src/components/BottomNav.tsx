@@ -11,6 +11,7 @@ interface BottomNavProps {
   onTabChange: (tab: TabType) => void;
   merchantContext?: boolean;
   youthContext?: boolean;
+  ridaContext?: boolean;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -20,6 +21,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onTabChange,
   merchantContext = false,
   youthContext = false
+  , ridaContext = false
 }) => {
   const getTab2Label = () => {
     if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'supervisor' || userRole === 'sub_admin') return 'Monitoring';
@@ -61,6 +63,26 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <span className="text-[10px] font-black uppercase tracking-wider">Chat</span>
           {activeTab === 'chat' && <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.8)]" />}
         </button>
+      </nav>
+    );
+  }
+
+  if (ridaContext && userRole === 'agent') {
+    return (
+      <nav className="app-bottom-nav fixed bottom-4 left-4 right-4 h-18 backdrop-blur-2xl bg-zinc-950/88 border border-white/10 rounded-3xl z-40 flex items-center justify-around px-3 shadow-[0_12px_40px_rgba(0,0,0,0.65)]">
+        {[
+          ['home', Home, 'Accueil'],
+          ['tab2', Users, 'Mes prospects'],
+          ['tab3', FolderOpen, 'Archives']
+        ].map(([tab, Icon, label]) => {
+          const key = tab as TabType;
+          const ActiveIcon = Icon as React.ComponentType<{ className?: string }>;
+          return <button key={key} onClick={() => onTabChange(key)} className={`app-tab flex-1 flex flex-col items-center justify-center space-y-1 transition-all duration-200 ${activeTab === key ? 'text-teal-300' : 'text-zinc-400 hover:text-zinc-200'}`}>
+            <ActiveIcon className={`w-5 h-5 ${activeTab === key ? '-translate-y-0.5 scale-110' : ''}`} />
+            <span className="text-[10px] font-black tracking-wide">{label}</span>
+            {activeTab === key && <div className="w-1.5 h-1.5 bg-teal-300 rounded-full" />}
+          </button>;
+        })}
       </nav>
     );
   }

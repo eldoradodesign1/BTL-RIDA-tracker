@@ -18,20 +18,15 @@ import {
   saveUsers,
   saveShops,
   saveLeads,
-  refreshCheckinsFromSupabase,
-  refreshReportsFromSupabase,
-  refreshUsersFromSupabase,
-  refreshLeadsFromSupabase,
+  refreshCheckinsFromGoogleSheets,
+  refreshReportsFromGoogleSheets,
+  refreshUsersFromGoogleSheets,
+  refreshLeadsFromGoogleSheets,
   flushOfflineOutbox,
 } from './utils/storage';
 
 
-import {
-  fetchUsersFromSupabase,
-  fetchShopsFromSupabase,
-  fetchLeadsFromSupabase,
-  isSupabaseConfigured
-} from './utils/supabase';
+import { fetchTableFromGoogleSheets } from './utils/appScriptApi';
 import { getActiveCampaignRuns, getCampaignPauses, getCampaigns, getCampaignsForUser, getDailyAttendance, getMerchantCampaign, getMerchantEvidencePublicUrl, getMerchantFundRequests, invalidateMerchantCache, isCampaignPausedOn } from './utils/merchantCampaign';
 import { armFundRequestAlertAudio, emitFundRequestAlertSound, showFundRequestSystemNotification } from './utils/fundRequestAlert';
 import { CheckCircle2, CircleAlert } from 'lucide-react';
@@ -109,8 +104,8 @@ export default function App() {
   const [activeCampaign, setActiveCampaign] = useState<CampaignContext>(() => {
     try {
       const saved = localStorage.getItem('btl_active_campaign');
-      if (saved === 'merchant-educational' || saved === 'youth-f2f') return saved;
-      return 'vodacom-privilege';
+      if (saved === 'merchant-educational' || saved === 'youth-f2f' || saved === 'rida-installation') return saved;
+      return 'rida-installation';
     } catch {
       return 'vodacom-privilege';
     }
@@ -270,9 +265,11 @@ export default function App() {
         const current = campaigns.find((campaign) => (
           activeCampaign === 'youth-f2f'
             ? campaign.code === 'youth-f2f'
-            : activeCampaign === 'merchant-educational'
+              : activeCampaign === 'merchant-educational'
               ? campaign.code === 'merchant-educational-campaign'
-              : campaign.code === 'vodacom-privilege'
+              : activeCampaign === 'rida-installation'
+                ? campaign.code === 'rida-lancement'
+                : campaign.code === 'vodacom-privilege'
         ));
         if (!current) {
           const fallback = campaigns[0];
@@ -281,7 +278,7 @@ export default function App() {
               ? 'youth-f2f'
               : currentUser.userCategory === 'brand_ambassador'
                 ? 'merchant-educational'
-                : 'vodacom-privilege';
+                : currentUser.userCategory === 'rida_agent' ? 'rida-installation' : 'vodacom-privilege';
             setActiveCampaign(inferredContext);
             localStorage.setItem('btl_active_campaign', inferredContext);
             setActiveCampaignPause(null);
@@ -291,7 +288,7 @@ export default function App() {
             ? 'youth-f2f'
             : fallback.code === 'merchant-educational-campaign'
               ? 'merchant-educational'
-              : 'vodacom-privilege';
+              : fallback.code === 'rida-lancement' ? 'rida-installation' : 'vodacom-privilege';
           setActiveCampaign(nextContext);
           localStorage.setItem('btl_active_campaign', nextContext);
           const pauses = await getCampaignPauses(fallback.id);
@@ -303,7 +300,7 @@ export default function App() {
       } catch {
         if (!cancelled) {
           setAgentCampaigns([]);
-          const inferredContext = currentUser.userCategory === 'brand_ambassador' ? 'merchant-educational' : 'vodacom-privilege';
+          const inferredContext = currentUser.userCategory === 'brand_ambassador' ? 'merchant-educational' : currentUser.userCategory === 'rida_agent' ? 'rida-installation' : 'vodacom-privilege';
           setActiveCampaign(inferredContext);
           localStorage.setItem('btl_active_campaign', inferredContext);
           setActiveCampaignPause(null);
@@ -317,7 +314,7 @@ const refreshData = useCallback(async (force = false) => {
   // Une action explicite de l’utilisateur doit toujours repartir des données réseau,
   // y compris si une autre synchronisation applicative échoue ensuite.
   if (force) invalidateMerchantCache();
-  if (!isSupabaseConfigured()) {
+  if (!true) {
     setUsers(getUsers());
     setShops(getShops());
     return;
@@ -333,11 +330,11 @@ const refreshData = useCallback(async (force = false) => {
 
   try {
     await flushOfflineOutbox();
-    const [usersData, shopsData] = await Promise.all([fetchUsersFromSupabase(), fetchShopsFromSupabase()]);
+    const [usersData, shopsData] = await Promise.all([fetchTableFromGoogleSheets<User>('users'), fetchTableFromGoogleSheets<Shop>('shops')]);
     await Promise.all([
-      refreshLeadsFromSupabase(),
-      refreshCheckinsFromSupabase(),
-      refreshReportsFromSupabase(),
+      refreshLeadsFromGoogleSheets(),
+      refreshCheckinsFromGoogleSheets(),
+      refreshReportsFromGoogleSheets(),
     ]);
     saveUsers(usersData);
     saveShops(shopsData);
@@ -348,7 +345,7 @@ const refreshData = useCallback(async (force = false) => {
     setShops(shopsData);
     setDataRevision((prev) => prev + 1);
   } catch (error) {
-    console.warn('Supabase refresh failed:', error);
+    console.warn('Google Sheets refresh failed:', error);
     setUsers(getUsers());
     setShops(getShops());
   }
@@ -397,7 +394,7 @@ const refreshData = useCallback(async (force = false) => {
   useEffect(() => {
     if (currentUser?.role !== 'super_admin') return;
     let cancelled = false;
-    void refreshUsersFromSupabase()
+    void refreshUsersFromGoogleSheets()
       .then(() => { if (!cancelled) setUsers(getUsers()); })
       .catch(() => { if (!cancelled) setUsers(getUsers()); });
     return () => { cancelled = true; };
@@ -504,11 +501,15 @@ const refreshData = useCallback(async (force = false) => {
       ? 'youth-f2f'
       : campaign.code === 'merchant-educational-campaign'
         ? 'merchant-educational'
-        : 'vodacom-privilege') as CampaignContext,
+        : campaign.code === 'rida-lancement'
+          ? 'rida-installation'
+          : 'vodacom-privilege') as CampaignContext,
     label: campaign.name,
     note: campaign.code === 'youth-f2f'
       ? 'Sensibilisation universitaire'
-      : campaign.campaign_type === 'brand_ambassador'
+      : campaign.code === 'rida-lancement'
+        ? 'Prospection et acquisition RIDA'
+        : campaign.campaign_type === 'brand_ambassador'
         ? 'Brand Ambassador'
         : 'Hôtesses',
   })).filter((campaign, index, list) => list.findIndex((item) => item.key === campaign.key) === index);
@@ -517,7 +518,8 @@ const refreshData = useCallback(async (force = false) => {
   const isYouthContext = effectiveRole === 'agent'
     ? (agentCampaignOptions.length > 0 ? activeCampaign === 'youth-f2f' : inferredAgentYouth)
     : activeCampaign === 'youth-f2f';
-  const isMerchantContext = !isYouthContext && (effectiveRole === 'agent'
+  const isRidaContext = effectiveRole === 'agent' && effectiveUser.userCategory === 'rida_agent';
+  const isMerchantContext = !isYouthContext && !isRidaContext && (effectiveRole === 'agent'
     ? (agentCampaignOptions.length > 0 ? activeCampaign === 'merchant-educational' : inferredAgentMerchant)
     : activeCampaign === 'merchant-educational');
   const campaignIsPaused = effectiveRole === 'agent' && Boolean(activeCampaignPause);
@@ -603,7 +605,22 @@ const todayLeads =
   const renderContent = () => {
     let content: React.ReactNode;
 
-    if (isYouthContext && activeTab !== 'chat') {
+    if (isRidaContext && activeTab !== 'chat') {
+      content = <AgentView
+        currentUser={effectiveUser}
+        campaignPaused={campaignIsPaused}
+        pauseReason={activeCampaignPause?.reason || ''}
+        activeShopId={activeShopId}
+        activeTab={activeTab}
+        todayLeads={todayLeads}
+        todayCheckin={todayCheckin}
+        agentReports={agentReports}
+        onOpenLeadModal={() => setIsLeadModalOpen(true)}
+        onOpenReportModal={() => setIsReportModalOpen(true)}
+        onOpenPdfModal={(url) => setPdfModalUrl(url)}
+        onRefreshData={refreshData}
+      />;
+    } else if (isYouthContext && activeTab !== 'chat') {
       content = <YouthF2FView currentUser={effectiveUser} />;
     } else if (activeTab === 'chat') {
       content = <ChatView currentUser={effectiveUser} onDataChanged={refreshData} />;
@@ -757,7 +774,7 @@ const todayLeads =
       <main className="flex-1 min-h-0 px-3 sm:px-4 pt-3 pb-32 max-w-2xl mx-auto w-full overflow-y-auto overflow-x-hidden">
         {activeTab === 'admin' && realMasterUser.role === 'super_admin' && (
           <button type="button" onClick={() => setIsSystemConfigurationOpen(true)} className="glass-card mb-3 flex w-full items-center justify-between border border-fuchsia-300/25 bg-fuchsia-400/[0.06] px-4 py-3 text-left transition hover:bg-fuchsia-400/[0.1]">
-            <span><b className="block text-xs font-black uppercase tracking-wide text-fuchsia-100">Paramètres de la base</b><span className="mt-1 block text-[10px] font-semibold text-gray-400">Supabase, Gemini OCR, schéma, export et cache</span></span>
+          <span><b className="block text-xs font-black uppercase tracking-wide text-fuchsia-100">Paramètres de la base</b><span className="mt-1 block text-[10px] font-semibold text-gray-400">Google Sheets, Apps Script, Drive et export</span></span>
             <span className="rounded-xl border border-fuchsia-200/25 px-2 py-1 text-[10px] font-black text-fuchsia-100">OUVRIR</span>
           </button>
         )}
@@ -770,6 +787,7 @@ const todayLeads =
         unreadChatCount={chatUnreadCount}
         merchantContext={isMerchantContext}
         youthContext={isYouthContext}
+        ridaContext={isRidaContext}
         onTabChange={(tab) => {
           if (tab === 'home') {
             setHomeTabPressCount((prev) => prev + 1);

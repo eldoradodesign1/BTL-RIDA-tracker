@@ -1,26 +1,14 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Campaign, User, YouthDailyAssignment, YouthDailyAttendance, YouthUniversity } from '../types';
-import { getSupabaseConfig } from './supabase';
 import { getMerchantEvidencePublicUrl, uploadMerchantEvidence } from './merchantCampaign';
 import { getGoogleSheetsDatabaseClient } from './googleSheetStore';
 
 export const YOUTH_F2F_CAMPAIGN_CODE = 'youth-f2f';
 
-let youthClient: SupabaseClient | null = null;
-let youthClientKey = '';
+let youthClient: any = null;
 
 function getYouthClient(): any {
-  const config = getSupabaseConfig();
-  if (!config) return getGoogleSheetsDatabaseClient();
-  const nextKey = `${config.url}|${config.anonKey}`;
-  if (youthClient && youthClientKey === nextKey) return youthClient;
-  try {
-    youthClient = createClient(config.url, config.anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    youthClientKey = nextKey;
-    return youthClient;
-  } catch {
-    return getGoogleSheetsDatabaseClient();
-  }
+  if (!youthClient) youthClient = getGoogleSheetsDatabaseClient();
+  return youthClient;
 }
 
 function fail(error: { message: string } | null, context: string): void {

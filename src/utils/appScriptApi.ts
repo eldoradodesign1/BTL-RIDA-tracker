@@ -1,5 +1,5 @@
 /**
- * Client API Google Apps Script & Google Sheets pour BTL Vodacom Tracker
+ * Client API Google Apps Script & Google Sheets pour BTL RIDA Field Tracker
  */
 
 import type {
@@ -91,7 +91,7 @@ export function getGoogleSheetUrl(): string {
   const stored = localStorage.getItem(STORAGE_KEYS.GOOGLESHEET_URL);
   if (stored && stored.trim()) return stored.trim();
   const envUrl = readEnv('VITE_GOOGLESHEET_URL') || readEnv('GOOGLESHEET_URL');
-  return envUrl ? envUrl.trim() : '';
+  return envUrl ? envUrl.trim() : 'https://docs.google.com/spreadsheets/d/1UXPbRj0zt3rqStMV-JGx0FUTtRUOowznkDT1N4QzGoU';
 }
 
 export function setGoogleSheetUrl(url: string): void {

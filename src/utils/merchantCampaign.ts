@@ -1,4 +1,3 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type {
   BADailyAttendance,
   BAPosVisit,
@@ -10,14 +9,12 @@ import type {
   PointOfSale,
   User,
 } from '../types';
-import { getSupabaseConfig } from './supabase';
 import { getGoogleSheetsDatabaseClient } from './googleSheetStore';
 
 const MERCHANT_CACHE_PREFIX = 'btl_merchant_cache_v1:';
 export const MERCHANT_CACHE_TTL_MS = 60 * 60 * 1000;
 type MerchantCacheEntry<T> = { savedAt: number; value: T };
-let merchantClient: SupabaseClient | null = null;
-let merchantClientKey = '';
+let merchantClient: any = null;
 
 function readMerchantCache<T>(key: string): T | null {
   if (typeof window === 'undefined') return null;
@@ -88,24 +85,8 @@ export function clampMerchantActivityDate(value?: string): string {
 }
 
 export function getMerchantClient(): any {
-  const config = getSupabaseConfig();
-  if (!config) return getGoogleSheetsDatabaseClient();
-  const nextKey = `${config.url}|${config.anonKey}`;
-  if (merchantClient && merchantClientKey === nextKey) return merchantClient;
-
-  try {
-    merchantClient = createClient(config.url, config.anonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    });
-    merchantClientKey = nextKey;
-    return merchantClient;
-  } catch {
-    return getGoogleSheetsDatabaseClient();
-  }
+  if (!merchantClient) merchantClient = getGoogleSheetsDatabaseClient();
+  return merchantClient;
 }
 
 function fail(error: { message: string } | null, context: string): void {

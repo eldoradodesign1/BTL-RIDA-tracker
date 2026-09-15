@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, Lock, Phone, Trash2 } from 'lucide-react';
 import { User, Campaign, CampaignContext } from '../types';
-import { authenticate, purgeAndResetEverything, refreshUsersFromSupabase } from '../utils/storage';
+import { authenticate, purgeAndResetEverything, refreshUsersFromGoogleSheets } from '../utils/storage';
 import { getCampaignsForUser } from '../utils/merchantCampaign';
 
 interface LoginScreenProps {
@@ -65,7 +65,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      await refreshUsersFromSupabase();
+      await refreshUsersFromGoogleSheets();
       const result = authenticate(enteredPhone, enteredPassword);
       if (result.success && result.user) {
         await determineCampaign(result.user);

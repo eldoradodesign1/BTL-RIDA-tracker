@@ -1196,3 +1196,33 @@ body.theme-diamond .app-header .text-gray-400 {
 @media (prefers-reduced-motion: reduce) {
   .animate-toast-in { animation: none; }
 }
+
+/* RIDA-Lancement visual system: desaturated teal, graphite and soft glass. */
+:root {
+  --rida-green: #8fc8c0;
+  --rida-emerald: #6fa9a3;
+  --rida-dark-green: #477d79;
+  --rida-cyan: #8fb8bb;
+  --rida-glow: rgba(143, 200, 192, 0.22);
+  --theme-accent: #8fc8c0;
+  --theme-accent-rgb: 143, 200, 192;
+  --theme-accent-soft-rgb: 191, 222, 217;
+  --theme-accent-glow: rgba(143, 200, 192, 0.24);
+}
+
+body.theme-anthracite {
+  background-image: radial-gradient(circle at 14% 8%, rgba(104, 157, 151, 0.10) 0%, transparent 42%), radial-gradient(circle at 86% 88%, rgba(80, 119, 124, 0.08) 0%, transparent 48%), linear-gradient(180deg, #0b1112 0%, #111a1b 100%) !important;
+  --theme-accent: #8fc8c0;
+  --theme-accent-rgb: 143, 200, 192;
+  --theme-accent-glow: rgba(143, 200, 192, 0.24);
+}
+
+.glass-card {
+  border-color: rgba(206, 233, 229, 0.10) !important;
+  box-shadow: 0 18px 42px -18px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255,255,255,.05) !important;
+}
+
+button, input, textarea, select { transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease, color 160ms ease; }
+button:active { transform: scale(.98); }
+.app-bottom-nav { border-color: rgba(184, 224, 218, .16) !important; }
+.rida-kpi { background: rgba(143, 200, 192, .08); }
