@@ -1,6 +1,6 @@
 /**
  * =========================================================================
- * RIDA FIELD TRACKER — LUBUMBASHI (CAMPAGNE RIDA-INSTALLATION)
+ * RIDA FIELD TRACKER — LUBUMBASHI (CAMPAGNE RIDA-LANCEMENT)
  * GOOGLE APPS SCRIPT BACKEND
  * =========================================================================
  * Ce script transforme votre Google Spreadsheet en une base de données
@@ -23,9 +23,7 @@
 // Configuration des tables et de leurs colonnes
 var SCHEMAS = {
   'campaigns': ['id', 'code', 'name', 'campaign_type', 'status', 'starts_on', 'ends_on'],
-  'user_campaign_assignments': ['user_id', 'campaign_id', 'is_active'],
   'leads': ['id', 'timestamp', 'agent_id', 'agent_name', 'shop_id', 'client_name', 'msisdn', 'os_type', 'phone_brand', 'client_type', 'action_type', 'promo_code', 'notes', 'installation_proof_url', 'status'],
-  'hubs': ['id', 'name', 'city', 'lat', 'long', 'type'],
   'shops': ['id', 'name', 'city', 'lat', 'long', 'type'],
   'checkins': ['id', 'assignment_id', 'agent_id', 'agent_name', 'type', 'timestamp', 'lat', 'long', 'accuracy', 'photo', 'photo_drive_url', 'distance_m', 'geo_status', 'device', 'status'],
   'daily_reports': ['id', 'date', 'agent_id', 'agent_name', 'shop_id', 'shop_name', 'total_contacts', 'total_chauffeurs', 'total_downloads', 'total_installations', 'comment', 'photos', 'arrival_time', 'departure_time', 'pointage_photo', 'maps_in', 'maps_out', 'drive_pdf_url'],
@@ -44,7 +42,7 @@ function doGet(e) {
       var ss = SpreadsheetApp.getActiveSpreadsheet();
       return jsonResponse({
         status: 'ok',
-        appName: 'BTL Vodacom Privilège & Merchant Tracker Backend',
+        appName: 'RIDA Field Tracker — Backend',
         spreadsheetName: ss.getName(),
         spreadsheetId: ss.getId(),
         sheets: ss.getSheets().map(function(s) { return s.getName(); }),
@@ -138,7 +136,7 @@ function doPost(e) {
 }
 
 /**
- * Initialisation automatique de toutes les feuilles nécessaires avec design Vodacom
+ * Initialisation automatique de toutes les feuilles nécessaires avec le design RIDA
  */
 function initializeAllSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -373,7 +371,7 @@ function savePhotoToDrive(base64Data, filename, folderName) {
     }
 
     var targetFolder;
-    var fName = folderName || 'Vodacom_BTL_Uploads';
+    var fName = folderName || 'RIDA_Lancement_Uploads';
     var folders = DriveApp.getFoldersByName(fName);
 
     if (folders.hasNext()) {
