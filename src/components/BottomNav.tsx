@@ -20,8 +20,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   unreadChatCount = 0,
   onTabChange,
   merchantContext = false,
-  youthContext = false
-  , ridaContext = false
+  youthContext = false,
+  ridaContext = false
 }) => {
   const getTab2Label = () => {
     if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'supervisor' || userRole === 'sub_admin') return 'Monitoring';
@@ -67,7 +67,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     );
   }
 
-  if (ridaContext && userRole === 'agent') {
+  if (userRole === 'agent') {
     return (
       <nav className="app-bottom-nav fixed bottom-4 left-4 right-4 h-18 backdrop-blur-2xl bg-zinc-950/88 border border-white/10 rounded-3xl z-40 flex items-center justify-around px-3 shadow-[0_12px_40px_rgba(0,0,0,0.65)]">
         {[

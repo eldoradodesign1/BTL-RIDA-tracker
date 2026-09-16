@@ -518,11 +518,13 @@ const refreshData = useCallback(async (force = false) => {
   const isYouthContext = effectiveRole === 'agent'
     ? (agentCampaignOptions.length > 0 ? activeCampaign === 'youth-f2f' : inferredAgentYouth)
     : activeCampaign === 'youth-f2f';
-  const isRidaContext = effectiveRole === 'agent' && effectiveUser.userCategory === 'rida_agent';
+  // Dans ce produit, tous les agents utilisent le même parcours RIDA.
+  // Les anciens parcours marchand / privilège / youth ne sont plus exposés aux agents.
+  const isRidaContext = effectiveRole === 'agent';
   const isMerchantContext = !isYouthContext && !isRidaContext && (effectiveRole === 'agent'
     ? (agentCampaignOptions.length > 0 ? activeCampaign === 'merchant-educational' : inferredAgentMerchant)
     : activeCampaign === 'merchant-educational');
-  const campaignIsPaused = effectiveRole === 'agent' && Boolean(activeCampaignPause);
+  const campaignIsPaused = !isRidaContext && effectiveRole === 'agent' && Boolean(activeCampaignPause);
   const setPermittedCampaignContext = (campaign: CampaignContext) => {
     if (effectiveRole !== 'agent' || agentCampaignOptions.some((option) => option.key === campaign)) setCampaignContext(campaign);
   };
@@ -605,13 +607,13 @@ const todayLeads =
   const renderContent = () => {
     let content: React.ReactNode;
 
-    if (isRidaContext && activeTab !== 'chat') {
+    if (isRidaContext) {
       content = <AgentView
         currentUser={effectiveUser}
         campaignPaused={campaignIsPaused}
         pauseReason={activeCampaignPause?.reason || ''}
         activeShopId={activeShopId}
-        activeTab={activeTab}
+        activeTab={activeTab === 'chat' ? 'home' : activeTab}
         todayLeads={todayLeads}
         todayCheckin={todayCheckin}
         agentReports={agentReports}
@@ -738,15 +740,15 @@ const todayLeads =
         unreadChatCount={chatUnreadCount}
         online={online}
         syncPendingCount={syncPendingCount}
-        profilePhotoUrl={(isMerchantContext && effectiveUser.userCategory === 'brand_ambassador' ? merchantProfilePhotoUrl : isYouthContext ? '' : todayCheckinPhoto) || undefined}
-        onPointageRecorded={campaignIsPaused || isYouthContext ? undefined : refreshData}
-        allowCheckin={!campaignIsPaused && !isYouthContext}
-        checkinUnavailableLabel={isYouthContext ? 'Utilisez le pointage Youth F2F ci-dessous' : 'Pointage indisponible pendant la pause de campagne'}
+        profilePhotoUrl={(isMerchantContext && effectiveUser.userCategory === 'brand_ambassador' ? merchantProfilePhotoUrl : isYouthContext ? '' : isRidaContext ? '' : todayCheckinPhoto) || undefined}
+        onPointageRecorded={campaignIsPaused || isYouthContext || isRidaContext ? undefined : refreshData}
+        allowCheckin={!campaignIsPaused && !isYouthContext && !isRidaContext}
+        checkinUnavailableLabel={isYouthContext ? 'Pointage non disponible dans ce parcours' : isRidaContext ? 'Le parcours RIDA ne nécessite pas de pointage' : 'Pointage indisponible pendant la pause de campagne'}
         theme={theme}
         onSetTheme={setThemeMode}
-        activeCampaign={activeCampaign}
-        campaignOptions={effectiveRole === 'agent' ? agentCampaignOptions : undefined}
-        onSetCampaign={effectiveRole === 'agent'
+        activeCampaign={isRidaContext ? 'rida-installation' : activeCampaign}
+        campaignOptions={effectiveRole === 'agent' && !isRidaContext ? agentCampaignOptions : undefined}
+        onSetCampaign={effectiveRole === 'agent' && !isRidaContext
           ? (agentCampaignOptions.length > 1 ? setPermittedCampaignContext : undefined)
           : (realMasterUser.role === 'admin' || realMasterUser.role === 'super_admin' || realMasterUser.role === 'supervisor' || realMasterUser.role === 'sub_admin' ? setCampaignContext : undefined)}
         onMarkNotifsRead={() => {
