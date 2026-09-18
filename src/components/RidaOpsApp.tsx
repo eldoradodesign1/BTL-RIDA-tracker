@@ -25,7 +25,9 @@ type Props = {
   onRefresh: (force?: boolean) => void;
   onLogout: () => void;
   onOpenSystemConfig?: () => void;
-  onSimulateRole?: (role: UserRole) => void;\n  simulationActive?: boolean;\n  onExitSimulation?: () => void;
+  onSimulateRole?: (role: UserRole) => void;
+  simulationActive?: boolean;
+  onExitSimulation?: () => void;
 };
 
 const roleLabel: Record<UserRole,string> = {
@@ -159,7 +161,9 @@ type Props = {
   onRefresh: (force?: boolean) => void;
   onLogout: () => void;
   onOpenSystemConfig?: () => void;
-  onSimulateRole?: (role: UserRole) => void;\n  simulationActive?: boolean;\n  onExitSimulation?: () => void;
+  onSimulateRole?: (role: UserRole) => void;
+  simulationActive?: boolean;
+  onExitSimulation?: () => void;
 };
 
 const roleLabel: Record<UserRole,string> = {
