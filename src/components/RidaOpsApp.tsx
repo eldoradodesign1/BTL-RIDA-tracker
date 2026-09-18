@@ -69,6 +69,7 @@ function AgentHome({user,leads,checkins,reports,onAdd,onReport,onRefresh}:{user:
   const day=today();
   const todayLeads=leads.filter(x=>x.agent_id===user.id && toISO(x.timestamp)===day);
   const todayIn=checkins.find(x=>x.agent_id===user.id && x.type==='IN' && toISO(x.timestamp)===day);
+  const todayOut=checkins.find(x=>x.agent_id===user.id && x.type==='OUT' && toISO(x.timestamp)===day);
   const closed=reports.some(x=>x.agent_id===user.id && toISO(x.date)===day);
   const target=30;
   return <div className="ops-page">
