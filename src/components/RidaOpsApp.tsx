@@ -73,15 +73,18 @@ function AgentHome({user,leads,checkins,reports,onAdd,onReport,onRefresh}:{user:
   const target=30;
   return <div className="ops-page">
     <section className="ops-hero agent-hero">
-      <div><div className="ops-kicker">MA JOURNÉE · {new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long'})}</div>
-      <h1>Bonjour, {user.name.split(' ')[0]}.</h1><p>Tout ce dont vous avez besoin pour exécuter votre mission terrain, au même endroit.</p></div>
+      <div className="agent-identity">
+        {getTodayCheckinPhoto(user.id) ? <img className="agent-checkin-avatar" src={getTodayCheckinPhoto(user.id)!} alt="Photo du pointage" /> : <div className="agent-checkin-avatar agent-avatar-fallback">{initials(user.name)}</div>}
+        <div><div className="ops-kicker">MA JOURNÉE · {new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long'})}</div>
+        <h1>Bonjour, {user.name.split(' ')[0]}.</h1></div>
+      </div>
       <div className="hero-state"><StatusPill status={closed?'Journée clôturée':todayIn?'Sur le terrain':'À démarrer'}/><span>{user.permanentShopId || 'Site à confirmer'}</span></div>
     </section>
 
     <div className="ops-stat-grid">
       <Stat label="Activités du jour" value={fmt(todayLeads.length)} detail={`${Math.round(todayLeads.length/target*100)}% de l’objectif`} icon={Activity}/>
       <Stat label="Installations" value={fmt(todayLeads.filter(x=>x.action_type==='Installation RIDA').length)} detail="Acquisitions RIDA" icon={Zap} tone="blue"/>
-      <Stat label="Présence" value={todayIn?'Validée':'À pointer'} detail={todayOut?'Départ enregistré':'Départ en attente'} icon={MapPin} tone="amber"/>
+      <Stat label="Présence" value={todayIn?'Validée':'À pointer'} detail={todayIn?'Pointage GPS enregistré':'Pointage requis'} icon={MapPin} tone="amber"/>
     </div>
 
     <div className="ops-two-col">
