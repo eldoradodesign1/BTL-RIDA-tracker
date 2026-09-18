@@ -144,3 +144,22 @@ select{appearance:none;-webkit-appearance:none}
 .ops-stat-copy span{font-size:11px}.ops-stat-copy strong{font-size:25px}.ops-stat-copy small{font-size:10px}
 .ops-section-title p{font-size:13px}.panel-head h2{font-size:17px}
 @media(max-width:520px){.ops-section-title h1{font-size:26px}.ops-stat-copy strong{font-size:22px}.field-action b{font-size:13px}.field-action small{font-size:10px}.ops-stat-copy span{font-size:10px}.ops-stat-copy small{font-size:9px}}
+
+/* RIDA PARSIMONY — command controls */
+.agent-command-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.agent-command{min-height:112px;border:1px solid rgba(177,224,208,.12);border-radius:18px;background:rgba(255,255,255,.035);color:#9fe9cf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:.16s ease}
+.agent-command:hover:not(:disabled){background:rgba(85,214,170,.09);border-color:rgba(85,214,170,.3);transform:translateY(-1px)}
+.agent-command:disabled{opacity:.42;cursor:not-allowed}
+.agent-command svg{width:36px;height:36px}
+.agent-command span{font-size:10px;font-weight:900;letter-spacing:.1em}
+.agent-command.report-command{color:#d5bbff}
+.agent-command.report-command:hover:not(:disabled){background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.28)}
+.agent-command.done{background:rgba(85,214,170,.07);border-color:rgba(85,214,170,.2)}
+.agent-secondary-actions{margin-top:10px}
+.icon-action{min-width:76px;justify-content:center;gap:6px}
+.icon-button.danger{color:#ef9b9b;border-color:rgba(224,103,103,.18);background:rgba(224,103,103,.06)}
+.icon-button.danger:hover{background:rgba(224,103,103,.12);border-color:rgba(224,103,103,.3)}
+.inline-confirm{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px;padding:10px 12px;border:1px solid rgba(224,103,103,.2);border-radius:12px;background:rgba(80,20,20,.25);color:#eababa;font-size:12px}
+.sim-console button{font-size:0!important;padding:8px!important;min-width:36px}
+.sim-console button svg{width:17px;height:17px}
+@media(max-width:520px){.agent-command-grid{gap:8px}.agent-command{min-height:104px}.agent-command svg{width:34px;height:34px}.agent-secondary-actions .field-action{min-height:60px}}
