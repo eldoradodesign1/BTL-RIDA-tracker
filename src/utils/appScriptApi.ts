@@ -56,10 +56,13 @@ export interface AppScriptSyncSummary {
 }
 
 const STORAGE_KEYS = {
-  APPSCRIPT_URL: 'vodacom_appscript_url_v1',
-  GOOGLESHEET_URL: 'vodacom_googlesheet_url_v1',
-  LAST_STATUS: 'vodacom_appscript_last_status_v1'
+  APPSCRIPT_URL: 'rida_ops_appscript_url_v1',
+  GOOGLESHEET_URL: 'rida_ops_googlesheet_url_v1',
+  LAST_STATUS: 'rida_ops_appscript_last_status_v1'
 };
+
+export const DEFAULT_APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbynufUnL8CtKNVReR2OpzR3k7kMbPviJ-yh2JeEss3TvrmeQCXKTd9e_iVKQLr2iztD/exec';
+export const DEFAULT_GOOGLESHEET_URL = 'https://docs.google.com/spreadsheets/d/1UXPbRj0zt3rqStMV-JGx0FUTtRUOowznkDT1N4QzGoU/edit?usp=sharing';
 
 function readEnv(name: string): string | undefined {
   const env = (typeof import.meta !== 'undefined' ? (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env : undefined);
@@ -72,7 +75,7 @@ export function getAppScriptUrl(): string {
   const stored = localStorage.getItem(STORAGE_KEYS.APPSCRIPT_URL);
   if (stored && stored.trim()) return stored.trim();
   const envUrl = readEnv('VITE_APPSCRIPT_URL') || readEnv('APPSCRIPT_URL');
-  return envUrl ? envUrl.trim() : '';
+  return envUrl ? envUrl.trim() : DEFAULT_APPSCRIPT_URL;
 }
 
 export function setAppScriptUrl(url: string): void {
@@ -91,7 +94,7 @@ export function getGoogleSheetUrl(): string {
   const stored = localStorage.getItem(STORAGE_KEYS.GOOGLESHEET_URL);
   if (stored && stored.trim()) return stored.trim();
   const envUrl = readEnv('VITE_GOOGLESHEET_URL') || readEnv('GOOGLESHEET_URL');
-  return envUrl ? envUrl.trim() : 'https://docs.google.com/spreadsheets/d/1UXPbRj0zt3rqStMV-JGx0FUTtRUOowznkDT1N4QzGoU';
+  return envUrl ? envUrl.trim() : DEFAULT_GOOGLESHEET_URL;
 }
 
 export function setGoogleSheetUrl(url: string): void {
