@@ -93,12 +93,12 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
             <UserPlus className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-black uppercase text-white tracking-wider">Nouvel Acteur Campagne</h2>
-          <p className="text-xs text-gray-400 font-semibold mt-1">Création de profil agent ou superviseur RIDA</p>
+          <p className="text-sm text-gray-400 font-semibold mt-1">Création de profil agent ou superviseur RIDA</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Nom Complet</label>
+            <label className="text-sm font-black uppercase text-gray-400 block mb-1">Nom Complet</label>
             <input
               type="text"
               value={name}
@@ -110,7 +110,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Numéro MSISDN</label>
+            <label className="text-sm font-black uppercase text-gray-400 block mb-1">Numéro MSISDN</label>
             <input
               type="tel"
               value={phone}
@@ -123,11 +123,11 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Rôle</label>
+              <label className="text-sm font-black uppercase text-gray-400 block mb-1">Rôle</label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#00D084]"
+                className="rida-custom-select w-full"
               >
                 <option value="agent">Agent Terrain (RIDA)</option>
                 <option value="supervisor">Superviseur Lubumbashi</option>
@@ -136,13 +136,13 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Mot de passe initial</label>
+              <label className="text-sm font-black uppercase text-gray-400 block mb-1">Mot de passe initial</label>
               <input
                 type="text"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="rida2025"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#00D084]"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00D084]"
               />
             </div>
           </div>
@@ -150,12 +150,12 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
           {role === 'agent' && (
             <>
               <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Hub / Secteur de base</label>
+                <label className="text-sm font-black uppercase text-gray-400 block mb-1">Hub / Secteur de base</label>
                 <select
                   value={permanentShopId}
                   onChange={(e) => setPermanentShopId(e.target.value)}
                   required
-                  className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#00D084]"
+                  className="rida-custom-select w-full"
                 >
                   <option value="">-- Sélectionner Hub / Secteur --</option>
                   {shops.map((s) => (
@@ -167,11 +167,11 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Superviseur Rattaché</label>
+                <label className="text-sm font-black uppercase text-gray-400 block mb-1">Superviseur Rattaché</label>
                 <select
                   value={supervisorId}
                   onChange={(e) => setSupervisorId(e.target.value)}
-                  className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#00D084]"
+                  className="rida-custom-select w-full"
                 >
                   <option value="">-- Aucun superviseur particulier --</option>
                   {supervisors.map((sup) => (
@@ -185,7 +185,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
           )}
 
           {errorMsg && (
-            <div className="p-3 rounded-2xl border border-rose-500/30 bg-rose-950/40 text-xs font-bold text-rose-300">
+            <div className="p-3 rounded-2xl border border-rose-500/30 bg-rose-950/40 text-sm font-bold text-rose-300">
               {errorMsg}
             </div>
           )}
@@ -193,7 +193,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, shops, onClose, on
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#00D084] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-[#032313] font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_8px_25px_rgba(0,208,132,0.3)] mt-6 transition-all disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#00D084] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-[#032313] font-black text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_8px_25px_rgba(0,208,132,0.3)] mt-6 transition-all disabled:opacity-50"
           >
             <UserPlus className="w-4 h-4" />
             <span>{isSubmitting ? 'Création en cours...' : "Enregistrer l'utilisateur"}</span>
