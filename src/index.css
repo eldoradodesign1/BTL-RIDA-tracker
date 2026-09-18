@@ -197,3 +197,10 @@ html,body,#root{min-height:100%;scrollbar-width:thin;scrollbar-color:rgba(85,214
 .sim-user-menu button{width:100%;display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:7px;padding:9px;border:0;border-radius:9px;background:transparent;color:#dceee8;text-align:left;font-size:11px;cursor:pointer}
 .sim-user-menu button:hover{background:rgba(85,214,170,.1)}
 .sim-user-menu button small{color:#718b82;font-size:8px}
+
+.rida-picker{position:relative;width:100%}
+.rida-picker-trigger{width:100%;min-height:48px;padding:0 13px;border:1px solid rgba(177,224,208,.16);border-radius:13px;background:rgba(255,255,255,.055);color:#eaf7f2;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:700;cursor:pointer}
+.rida-picker-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rida-picker-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;padding:6px;border:1px solid rgba(177,224,208,.16);border-radius:13px;background:#10201c;box-shadow:0 18px 45px rgba(0,0,0,.35);max-height:240px;overflow:auto}
+.rida-picker-menu button{width:100%;border:0;background:transparent;color:#dceee8;padding:11px 10px;border-radius:9px;display:flex;align-items:center;justify-content:space-between;text-align:left;font-size:13px;cursor:pointer}
+.rida-picker-menu button:hover,.rida-picker-menu button.selected{background:rgba(85,214,170,.1);color:#9ff0d1}
