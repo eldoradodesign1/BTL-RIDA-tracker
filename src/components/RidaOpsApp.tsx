@@ -3,11 +3,11 @@ import {
   Activity, Archive, BarChart3, Bell, CalendarDays, Camera, CheckCircle2, ChevronDown,
   ClipboardList, Clock3, Download, FileText, Gauge, Globe2, LayoutDashboard, LogOut,
   MapPin, Menu, Plus, RefreshCw, Search, Settings2, ShieldCheck, Target, UserCog,
-  Users, X, Zap
+  Users, X, Zap, Trash2
 } from 'lucide-react';
 import type { User, Shop, Lead, Checkin, DailyReport, UserRole } from '../types';
 import {
-  addCheckin, getCheckins, getLeads, getReports, getTodayCheckinPhoto, getUsers, toISO
+  addCheckin, deleteUserLocal, getCheckins, getLeads, getReports, getTodayCheckinPhoto, getUsers, toISO
 } from '../utils/storage';
 import { LeadModal } from './Modals/LeadModal';
 import { ReportModal } from './Modals/ReportModal';
@@ -88,17 +88,16 @@ function AgentHome({user,leads,checkins,reports,onAdd,onReport,onRefresh}:{user:
     <div className="ops-two-col">
       <section className="ops-panel action-panel">
         <div className="panel-head"><div><span className="ops-eyebrow">ACTION IMMÉDIATE</span><h2>Votre poste de travail</h2></div><button className="icon-button" onClick={onRefresh}><RefreshCw size={16}/></button></div>
-        <div className="action-grid">
-          <button className={`field-action ${todayIn?'done':''}`} disabled={!!todayIn} onClick={()=>captureAttendance(user,'IN',onRefresh)}>
-            <span className="field-action-icon"><MapPin size={22}/></span><span><b>{todayIn?'Arrivée enregistrée':'Pointer mon arrivée'}</b><small>{todayIn?new Date(todayIn.timestamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'GPS + photo de présence'}</small></span>
-            {todayIn?<CheckCircle2 size={18}/>:<ChevronDown size={18}/>}
+        <div className="agent-command-grid">
+          <button className={`agent-command ${todayIn?'done':''}`} disabled={!!todayIn} onClick={()=>captureAttendance(user,'IN',onRefresh)} aria-label={todayIn?'Arrivée enregistrée':'Enregistrer l’arrivée'} title={todayIn?'Arrivée enregistrée':'Enregistrer l’arrivée'}>
+            <MapPin size={34}/><span>{todayIn?'✓':'IN'}</span>
           </button>
-          <button className={`field-action ${todayOut?'done':''}`} disabled={!todayIn||!!todayOut} onClick={()=>captureAttendance(user,'OUT',onRefresh)}>
-            <span className="field-action-icon"><Clock3 size={22}/></span><span><b>{todayOut?'Départ enregistré':'Clôturer ma présence'}</b><small>{todayOut?'Journée terminée':'GPS + photo de sortie'}</small></span>
-            {todayOut?<CheckCircle2 size={18}/>:<ChevronDown size={18}/>}
+          <button className={`agent-command report-command ${closed?'done':''}`} disabled={!todayIn||closed} onClick={onReport} aria-label="Présenter le rapport et clôturer la journée" title="Rapport / clôture">
+            <FileText size={34}/><span>{closed?'✓':'RAPPORT'}</span>
           </button>
-          <button className="field-action primary" disabled={!todayIn||closed} onClick={onAdd}><span className="field-action-icon"><Plus size={22}/></span><span><b>Enregistrer un client</b><small>Contact, chauffeur ou installation</small></span><ChevronDown size={18}/></button>
-          <button className="field-action" onClick={onReport}><span className="field-action-icon"><FileText size={22}/></span><span><b>Présenter mon rapport</b><small>{closed?'Rapport déjà transmis':'Synthèse de la journée'}</small></span><ChevronDown size={18}/></button>
+        </div>
+        <div className="agent-secondary-actions">
+          <button className="field-action primary" disabled={!todayIn||closed} onClick={onAdd} aria-label="Enregistrer un client" title="Enregistrer un client"><span className="field-action-icon"><Plus size={24}/></span><span><b>Client</b><small>Nouvelle activité</small></span></button>
         </div>
       </section>
       <section className="ops-panel">
@@ -145,7 +144,7 @@ function TeamView({user,users,shops,leads,checkins,onOpenAgent}:{user:User;users
   const day=today();
   const rows=team.map(u=>{const ci=checkins.find(c=>c.agent_id===u.id&&c.type==='IN'&&toISO(c.timestamp)===day);const co=checkins.find(c=>c.agent_id===u.id&&c.type==='OUT'&&toISO(c.timestamp)===day);const count=leads.filter(l=>l.agent_id===u.id&&toISO(l.timestamp)===day).length;const shop=shops.find(s=>s.id===u.permanentShopId);return {u,ci,co,count,shop};});
   return <div className="ops-page ops-cockpit">
-    <SectionTitle eyebrow="ÉQUIPE · LIVE" title="Control room" description="Pilotez la présence et la cadence sans passer par des tableaux."/>
+    <SectionTitle eyebrow="ÉQUIPE · LIVE" title="Control room"/>
     <div className="ops-stat-grid">
       <Stat label="Agents" value={team.length} detail="rattachés à la campagne" icon={Users}/>
       <Stat label="Sur site" value={rows.filter(x=>x.ci&&!x.co).length} detail="présences ouvertes" icon={MapPin} tone="blue"/>
@@ -170,11 +169,20 @@ function AdminOverview({users,leads,checkins,reports,role}:{users:User[];leads:L
   const agents=users.filter(u=>u.role==='agent'); const day=today();
   const active=agents.filter(u=>checkins.some(c=>c.agent_id===u.id&&c.type==='IN'&&toISO(c.timestamp)===day&& !checkins.some(o=>o.agent_id===u.id&&o.type==='OUT'&&toISO(o.timestamp)===day))).length;
   const todayLeads=leads.filter(l=>toISO(l.timestamp)===day);
-  return <div className="ops-page"><SectionTitle eyebrow={role==='super_admin'?'CONTROL CENTER':'OPERATIONS'} title="Vue d’ensemble" description="Lecture consolidée de l’activité terrain." action={<div className="live-badge"><i/> Données actualisées</div>}/><div className="ops-stat-grid four"><Stat label="Agents" value={agents.length} detail="dans la base" icon={Users}/><Stat label="Sur le terrain" value={active} detail="présences ouvertes" icon={MapPin} tone="blue"/><Stat label="Activité" value={fmt(todayLeads.length)} detail="actions aujourd’hui" icon={Activity} tone="amber"/><Stat label="Rapports" value={reports.filter(r=>toISO(r.date)===day).length} detail="reçus aujourd’hui" icon={FileText} tone="purple"/></div><div className="ops-two-col"><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">CADENCE</span><h2>Activité des 7 derniers jours</h2></div><BarChart3 size={18}/></div><div className="bar-chart">{Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));const ds=toISO(d);const v=leads.filter(l=>toISO(l.timestamp)===ds).length;const max=Math.max(1,...Array.from({length:7},(_,j)=>{const q=new Date();q.setDate(q.getDate()-(6-j));return leads.filter(l=>toISO(l.timestamp)===toISO(q)).length;}));return <div key={ds}><div className="bar-value">{v}</div><span style={{height:`${Math.max(8,v/max*130)}px`}}/><small>{d.toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','')}</small></div>})}</div></section><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">QUALITÉ DES DONNÉES</span><h2>Couverture opérationnelle</h2></div><Gauge size={18}/></div><div className="quality-list"><div><span>Pointages GPS</span><b>{checkins.filter(c=>toISO(c.timestamp)===day&&c.lat).length}</b></div><div><span>Activités synchronisées</span><b>{todayLeads.filter(l=>l.status==='synced'||l.status==='Validé').length}</b></div><div><span>Rapports reçus</span><b>{reports.filter(r=>toISO(r.date)===day).length}</b></div></div><div className="insight-box"><Zap size={16}/><span>Le suivi privilégie les données utiles à l’action : présence, activité, couverture et clôture.</span></div></section></div><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">DERNIÈRES ACTIVITÉS</span><h2>Flux terrain</h2></div></div>{todayLeads.slice(0,8).map(l=><div className="feed-row" key={l.id}><span className="feed-dot"/><div><b>{users.find(u=>u.id===l.agent_id)?.name||l.agent_id}</b><span>{l.action_type} · {l.client_name}</span></div><time>{new Date(l.timestamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>)}</section></div>;
+  return <div className="ops-page"><SectionTitle eyebrow={role==='super_admin'?'CONTROL CENTER':'OPERATIONS'} title="Vue d’ensemble" action={<div className="live-badge"><i/> Données actualisées</div>}/><div className="ops-stat-grid four"><Stat label="Agents" value={agents.length} detail="dans la base" icon={Users}/><Stat label="Sur le terrain" value={active} detail="présences ouvertes" icon={MapPin} tone="blue"/><Stat label="Activité" value={fmt(todayLeads.length)} detail="actions aujourd’hui" icon={Activity} tone="amber"/><Stat label="Rapports" value={reports.filter(r=>toISO(r.date)===day).length} detail="reçus aujourd’hui" icon={FileText} tone="purple"/></div><div className="ops-two-col"><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">CADENCE</span><h2>Activité des 7 derniers jours</h2></div><BarChart3 size={18}/></div><div className="bar-chart">{Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));const ds=toISO(d);const v=leads.filter(l=>toISO(l.timestamp)===ds).length;const max=Math.max(1,...Array.from({length:7},(_,j)=>{const q=new Date();q.setDate(q.getDate()-(6-j));return leads.filter(l=>toISO(l.timestamp)===toISO(q)).length;}));return <div key={ds}><div className="bar-value">{v}</div><span style={{height:`${Math.max(8,v/max*130)}px`}}/><small>{d.toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','')}</small></div>})}</div></section><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">QUALITÉ DES DONNÉES</span><h2>Couverture opérationnelle</h2></div><Gauge size={18}/></div><div className="quality-list"><div><span>Pointages GPS</span><b>{checkins.filter(c=>toISO(c.timestamp)===day&&c.lat).length}</b></div><div><span>Activités synchronisées</span><b>{todayLeads.filter(l=>l.status==='synced'||l.status==='Validé').length}</b></div><div><span>Rapports reçus</span><b>{reports.filter(r=>toISO(r.date)===day).length}</b></div></div><div className="insight-box"><Zap size={16}/><span>Le suivi privilégie les données utiles à l’action : présence, activité, couverture et clôture.</span></div></section></div><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">DERNIÈRES ACTIVITÉS</span><h2>Flux terrain</h2></div></div>{todayLeads.slice(0,8).map(l=><div className="feed-row" key={l.id}><span className="feed-dot"/><div><b>{users.find(u=>u.id===l.agent_id)?.name||l.agent_id}</b><span>{l.action_type} · {l.client_name}</span></div><time>{new Date(l.timestamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>)}</section></div>;
 }
 
-function PeopleView({users,onAdd}:{users:User[];onAdd:()=>void}) {
-  return <div className="ops-page"><SectionTitle eyebrow="ADMINISTRATION" title="Utilisateurs" description="Identités, rôles et statut d’accès." action={<button className="ops-button primary" onClick={onAdd}><Plus size={16}/> Ajouter</button>}/><div className="ops-toolbar"><div className="search-box"><Search size={16}/><input placeholder="Rechercher un nom ou numéro…"/></div></div><section className="ops-panel table-panel"><table className="ops-table"><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th><th>Superviseur</th><th>Dernière connexion</th></tr></thead><tbody>{users.map(u=><tr key={u.id}><td><div className="person-cell"><span>{initials(u.name)}</span><div><b>{u.name}</b><small>{u.phone}</small></div></div></td><td><span className="role-tag">{roleLabel[u.role]}</span></td><td><StatusPill status="Actif"/></td><td>{users.find(s=>s.id===u.supervisorId)?.name||'—'}</td><td>{u.last_login?new Date(u.last_login).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'—'}</td></tr>)}</tbody></table></section></div>;
+function PeopleView({users,onAdd,onRefresh}:{users:User[];onAdd:()=>void;onRefresh:()=>void}) {
+  const [deleteId,setDeleteId]=useState<string|null>(null);
+  const target=users.find(u=>u.id===deleteId);
+  const confirmDelete=()=>{ if(!deleteId)return; deleteUserLocal(deleteId); setDeleteId(null); onRefresh(); };
+  return <div className="ops-page">
+    <SectionTitle eyebrow="ADMINISTRATION" title="Utilisateurs" action={<button className="ops-button primary icon-action" onClick={onAdd} aria-label="Ajouter un utilisateur" title="Ajouter un utilisateur"><Plus size={19}/><UserCog size={17}/></button>}/>
+    <div className="ops-toolbar"><div className="search-box"><Search size={16}/><input placeholder="Rechercher un nom ou numéro…"/></div></div>
+    <section className="ops-panel table-panel"><table className="ops-table"><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th><th>Superviseur</th><th>Dernière connexion</th><th></th></tr></thead>
+    <tbody>{users.map(u=><tr key={u.id}><td><div className="person-cell"><span>{initials(u.name)}</span><div><b>{u.name}</b><small>{u.phone}</small></div></div></td><td><span className="role-tag">{roleLabel[u.role]}</span></td><td><StatusPill status="Actif"/></td><td>{users.find(s=>s.id===u.supervisorId)?.name||'—'}</td><td>{u.last_login?new Date(u.last_login).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'—'}</td><td><button className="icon-button danger" onClick={()=>setDeleteId(u.id)} aria-label={`Supprimer ${u.name}`} title="Supprimer"><Trash2 size={16}/></button></td></tr>)}</tbody></table></section>
+    {target&&<div className="inline-confirm"><span>Supprimer <b>{target.name}</b> ?</span><button className="icon-button danger" onClick={confirmDelete} aria-label="Confirmer la suppression" title="Confirmer"><CheckCircle2 size={16}/></button><button className="icon-button" onClick={()=>setDeleteId(null)} aria-label="Annuler" title="Annuler"><X size={16}/></button></div>}
+  </div>;
 }
 
 function ArchiveView({leads,reports,users}:{leads:Lead[];reports:DailyReport[];users:User[]}) {
@@ -219,7 +227,7 @@ export const RidaOpsApp:React.FC<Props>=({user,users,shops,online,syncPendingCou
         {isSupervisor&&page==='archive'&&<ArchiveView leads={leads} reports={reports.filter(r=>users.find(u=>u.id===r.agent_id)?.supervisorId===user.id)} users={users}/>}
         {isSupervisor&&page==='team'&&<TeamView user={user} users={users} shops={shops} leads={leads} checkins={checkins} onOpenAgent={openAgent}/>}
         {isAdmin&&page==='overview'&&<AdminOverview users={users} leads={leads} checkins={checkins} reports={reports} role={user.role}/>}
-        {isAdmin&&page==='people'&&<PeopleView users={users} onAdd={()=>setUserOpen(true)}/>}
+        {isAdmin&&page==='people'&&<PeopleView users={users} onAdd={()=>setUserOpen(true)} onRefresh={()=>onRefresh(true)}/>}
         {isAdmin&&page==='campaigns'&&<div className="ops-page"><SectionTitle eyebrow="ORGANISATION" title="Campagnes" description="Les espaces de travail opérationnels."/><section className="ops-panel campaign-card"><div className="campaign-card-mark">R</div><div><span className="ops-eyebrow">CAMPAGNE ACTIVE</span><h2>RIDA · Lubumbashi</h2><p>Installation et acquisition · campagne terrain</p></div><StatusPill status="Active"/><div className="campaign-details"><span><b>Ville</b>Lubumbashi</span><span><b>Statut</b>Active</span><span><b>Type</b>Acquisition</span><span><b>Données</b>Google Sheets</span></div></section></div>}
         {isAdmin&&page==='assignments'&&<PeopleView users={users.filter(u=>u.role==='agent'||u.role==='supervisor')} onAdd={()=>setUserOpen(true)}/>}
         {isAdmin&&page==='field'&&<TeamView user={users.find(u=>u.role==='supervisor')||user} users={users} shops={shops} leads={leads} checkins={checkins} onOpenAgent={openAgent}/>}
