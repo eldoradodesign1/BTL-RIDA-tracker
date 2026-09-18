@@ -144,7 +144,26 @@ function TeamView({user,users,shops,leads,checkins,onOpenAgent}:{user:User;users
   const team=users.filter(u=>u.role==='agent' && u.supervisorId===user.id);
   const day=today();
   const rows=team.map(u=>{const ci=checkins.find(c=>c.agent_id===u.id&&c.type==='IN'&&toISO(c.timestamp)===day);const co=checkins.find(c=>c.agent_id===u.id&&c.type==='OUT'&&toISO(c.timestamp)===day);const count=leads.filter(l=>l.agent_id===u.id&&toISO(l.timestamp)===day).length;const shop=shops.find(s=>s.id===u.permanentShopId);return {u,ci,co,count,shop};});
-  return <div className="ops-page"><SectionTitle eyebrow="ÉQUIPE" title="Terrain en direct" description="La situation de votre équipe aujourd’hui."/><div className="ops-stat-grid"><Stat label="Effectif" value={team.length} detail="agents affectés" icon={Users}/><Stat label="Présence" value={rows.filter(x=>x.ci).length} detail={`${rows.filter(x=>x.ci&&!x.co).length} encore sur site`} icon={MapPin} tone="blue"/><Stat label="Activités" value={fmt(rows.reduce((a,x)=>a+x.count,0))} detail="aujourd’hui" icon={Activity} tone="amber"/></div><section className="ops-panel table-panel"><div className="panel-head"><div><span className="ops-eyebrow">MONITORING</span><h2>Agents rattachés</h2></div></div><table className="ops-table"><thead><tr><th>Agent</th><th>Site</th><th>Présence</th><th>Activités</th><th></th></tr></thead><tbody>{rows.map(x=><tr key={x.u.id}><td><div className="person-cell"><span>{initials(x.u.name)}</span><b>{x.u.name}</b></div></td><td>{x.shop?.name||'—'}</td><td><StatusPill status={x.ci?(x.co?'Clôturé':'Sur site'):'Absent'}/></td><td><strong>{x.count}</strong></td><td><button className="row-link" onClick={()=>onOpenAgent(x.u)}>Détails <ChevronDown size={14}/></button></td></tr>)}</tbody></table>{rows.length===0&&<Empty title="Aucun agent affecté" description="Les agents de votre campagne apparaîtront ici."/>}</section></div>;
+  return <div className="ops-page ops-cockpit">
+    <SectionTitle eyebrow="ÉQUIPE · LIVE" title="Control room" description="Pilotez la présence et la cadence sans passer par des tableaux."/>
+    <div className="ops-stat-grid">
+      <Stat label="Agents" value={team.length} detail="rattachés à la campagne" icon={Users}/>
+      <Stat label="Sur site" value={rows.filter(x=>x.ci&&!x.co).length} detail="présences ouvertes" icon={MapPin} tone="blue"/>
+      <Stat label="Activité" value={fmt(rows.reduce((a,x)=>a+x.count,0))} detail="actions aujourd'hui" icon={Activity} tone="amber"/>
+    </div>
+    <section className="ops-panel command-panel">
+      <div className="panel-head"><div><span className="ops-eyebrow">COMMANDES TERRAIN</span><h2>État des agents</h2></div><span className="live-badge"><i/> LIVE</span></div>
+      <div className="ops-roster">
+        {rows.map(x=><button className="ops-roster-row" key={x.u.id} onClick={()=>onOpenAgent(x.u)}>
+          <span className="roster-avatar">{initials(x.u.name)}</span>
+          <span className="roster-main"><b>{x.u.name}</b><small>{x.shop?.name||'Site non affecté'} · {x.count} activité{ x.count===1?'':'s'}</small></span>
+          <span className="roster-state"><StatusPill status={x.ci?(x.co?'Clôturé':'Sur site'):'Absent'}/></span>
+          <span className="roster-arrow">›</span>
+        </button>)}
+        {rows.length===0&&<Empty title="Aucun agent affecté" description="Les agents de votre campagne apparaîtront ici."/>}
+      </div>
+    </section>
+  </div>;
 }
 
 function AdminOverview({users,leads,checkins,reports,role}:{users:User[];leads:Lead[];checkins:Checkin[];reports:DailyReport[];role:UserRole}) {
@@ -185,9 +204,9 @@ export const RidaOpsApp:React.FC<Props>=({user,users,shops,online,syncPendingCou
       </div>
     </aside>
     <div className="ops-main">
-      <header className="ops-topbar"><div className="mobile-brand"><div className="ops-logo">R</div><strong>RIDA<span>OPS</span></strong></div><div className="breadcrumb"><span>RIDA · Lubumbashi</span><b>/</b><strong>{currentLabel}</strong></div><div className="top-actions"><button className="icon-button" onClick={refresh} title="Actualiser"><RefreshCw size={17}/></button><button className="icon-button" title="Notifications"><Bell size={17}/></button><div className="user-chip"><span>{initials(user.name)}</span><div><b>{user.name}</b><small>{roleLabel[user.role]}</small></div></div></div></header>
+      <header className="ops-topbar"><div className="mobile-brand"><div className="ops-logo">R</div><strong>RIDA<span>OPS</span></strong></div><div className="breadcrumb"><span>RIDA · Lubumbashi</span><b>/</b><strong>{currentLabel}</strong></div><div className="top-actions">{simulationActive&&<button className="control-return" onClick={onExitSimulation} title="Revenir au compte superadmin"><ShieldCheck size={15}/> Superadmin</button>}<button className="icon-button" onClick={refresh} title="Actualiser"><RefreshCw size={17}/></button><button className="icon-button" title="Notifications"><Bell size={17}/></button><div className="user-chip"><span>{initials(user.name)}</span><div><b>{user.name}</b><small>{roleLabel[user.role]}</small></div></div></div></header>
       {!online&&<div className="offline-banner"><Globe2 size={15}/> Connexion indisponible · les actions compatibles restent disponibles localement.</div>}
-      {user.role==='super_admin'&&<div className="sim-console"><ShieldCheck size={15}/><b>MODE CONTRÔLE</b><span>{simulationActive?'Vous êtes en simulation d’un autre rôle':'Vous utilisez les privilèges superadmin'}</span>{simulationActive&&<button onClick={onExitSimulation}>Quitter la simulation</button>}<button onClick={()=>onSimulateRole?.('agent')}>Tester l’espace agent</button><button onClick={()=>onSimulateRole?.('supervisor')}>Tester superviseur</button><button onClick={()=>onSimulateRole?.('admin')}>Tester admin</button></div>}
+      {(simulationActive||user.role==='super_admin')&&<div className="sim-console"><ShieldCheck size={15}/><b>MODE CONTRÔLE</b><span>{simulationActive?'Simulation active · vos privilèges superadmin sont conservés':'Vous utilisez les privilèges superadmin'}</span>{simulationActive&&<button onClick={onExitSimulation}>Quitter la simulation</button>}<button onClick={()=>onSimulateRole?.('agent')}>Tester l’espace agent</button><button onClick={()=>onSimulateRole?.('supervisor')}>Tester superviseur</button><button onClick={()=>onSimulateRole?.('admin')}>Tester admin</button></div>}
       <main>
         {isAgent&&page==='overview'&&<AgentHome user={user} leads={leads} checkins={checkins} reports={reports} onAdd={()=>setLeadOpen(true)} onReport={()=>setReportOpen(true)} onRefresh={refresh}/>}
         {isAgent&&page==='activity'&&<AgentActivity user={user} leads={leads} onAdd={()=>setLeadOpen(true)}/>}
