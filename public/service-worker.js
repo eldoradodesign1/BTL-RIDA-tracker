@@ -3,9 +3,7 @@ const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './favicon-refined.png',
-  './pwa-192.png',
-  './pwa-512.png',
+  './favicon.svg',
 ];
 
 const isStaticAsset = (url) => url.pathname.includes('/assets/')
