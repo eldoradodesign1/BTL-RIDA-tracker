@@ -25,7 +25,7 @@ type Props = {
   onRefresh: (force?: boolean) => void;
   onLogout: () => void;
   onOpenSystemConfig?: () => void;
-  onSimulateRole?: (role: UserRole) => void;
+  onSimulateRole?: (role: UserRole) => void;\n  simulationActive?: boolean;\n  onExitSimulation?: () => void;
 };
 
 const roleLabel: Record<UserRole,string> = {
@@ -152,7 +152,7 @@ function ArchiveView({leads,reports,users}:{leads:Lead[];reports:DailyReport[];u
   return <div className="ops-page"><SectionTitle eyebrow="HISTORIQUE" title="Archives" description="Retrouvez les données clôturées sans perturber le terrain."/><div className="ops-toolbar"><div className="search-box"><Search size={16}/><input value={term} onChange={e=>setTerm(e.target.value)} placeholder="Agent, site, date…"/></div><button className="filter-button"><Download size={15}/> Exporter</button></div><section className="ops-panel"><div className="panel-head"><div><span className="ops-eyebrow">RAPPORTS JOURNALIERS</span><h2>{rows.length} enregistrement{rows.length!==1?'s':''}</h2></div></div>{rows.slice(0,50).map(r=><div className="report-row" key={r.id}><div className="report-date"><strong>{new Date(r.date).getDate()}</strong><span>{new Date(r.date).toLocaleDateString('fr-FR',{month:'short'})}</span></div><div><b>{r.agent_name}</b><small>{r.shop_name} · {r.total_contacts ?? r.total_installations ?? 0} activités</small></div><div className="archive-metrics"><b>{r.total_installations??0}</b><span>install.</span></div><StatusPill status="Clôturé"/></div>)}{rows.length===0&&<Empty title="Aucun résultat" description="Essayez une autre recherche."/>}</section><div className="sr-only">{leads.length}{users.length}</div></div>;
 }
 
-export const RidaOpsApp:React.FC<Props>=({user,users,shops,online,syncPendingCount,onRefresh,onLogout,onOpenSystemConfig,onSimulateRole})=>{
+export const RidaOpsApp:React.FC<Props>=({user,users,shops,online,syncPendingCount,onRefresh,onLogout,onOpenSystemConfig,onSimulateRole,simulationActive,onExitSimulation})=>{
   const [page,setPage]=useState<Page>('overview');
   const [leadOpen,setLeadOpen]=useState(false); const [reportOpen,setReportOpen]=useState(false); const [userOpen,setUserOpen]=useState(false); const [shopOpen,setShopOpen]=useState(false); const [pdfUrl,setPdfUrl]=useState<string|null>(null);
   const leads=getLeads(); const checkins=getCheckins(); const reports=getReports();
@@ -174,7 +174,7 @@ export const RidaOpsApp:React.FC<Props>=({user,users,shops,online,syncPendingCou
     <div className="ops-main">
       <header className="ops-topbar"><div className="mobile-brand"><div className="ops-logo">R</div><strong>RIDA<span>OPS</span></strong></div><div className="breadcrumb"><span>RIDA · Lubumbashi</span><b>/</b><strong>{currentLabel}</strong></div><div className="top-actions"><button className="icon-button" onClick={refresh} title="Actualiser"><RefreshCw size={17}/></button><button className="icon-button" title="Notifications"><Bell size={17}/></button><div className="user-chip"><span>{initials(user.name)}</span><div><b>{user.name}</b><small>{roleLabel[user.role]}</small></div></div></div></header>
       {!online&&<div className="offline-banner"><Globe2 size={15}/> Connexion indisponible · les actions compatibles restent disponibles localement.</div>}
-      {user.role==='super_admin'&&<div className="sim-console"><ShieldCheck size={15}/><b>MODE CONTRÔLE</b><span>Vous utilisez les privilèges superadmin</span><button onClick={()=>onSimulateRole?.('agent')}>Tester l’espace agent</button><button onClick={()=>onSimulateRole?.('supervisor')}>Tester superviseur</button><button onClick={()=>onSimulateRole?.('admin')}>Tester admin</button></div>}
+      {user.role==='super_admin'&&<div className="sim-console"><ShieldCheck size={15}/><b>MODE CONTRÔLE</b><span>{simulationActive?'Vous êtes en simulation d’un autre rôle':'Vous utilisez les privilèges superadmin'}</span>{simulationActive&&<button onClick={onExitSimulation}>Quitter la simulation</button>}<button onClick={()=>onSimulateRole?.('agent')}>Tester l’espace agent</button><button onClick={()=>onSimulateRole?.('supervisor')}>Tester superviseur</button><button onClick={()=>onSimulateRole?.('admin')}>Tester admin</button></div>}
       <main>
         {isAgent&&page==='overview'&&<AgentHome user={user} leads={leads} checkins={checkins} reports={reports} onAdd={()=>setLeadOpen(true)} onReport={()=>setReportOpen(true)} onRefresh={refresh}/>}
         {isAgent&&page==='activity'&&<AgentActivity user={user} leads={leads} onAdd={()=>setLeadOpen(true)}/>}
