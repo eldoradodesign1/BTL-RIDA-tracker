@@ -48,12 +48,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onSuccess
             <Store className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-black uppercase text-white tracking-wider">Nouveau Hub / Point Stratégique</h2>
-          <p className="text-xs text-gray-400 font-semibold mt-1">Ajout d'un point d'activation RIDA Lubumbashi</p>
+          <p className="text-sm text-gray-400 font-semibold mt-1">Ajout d'un point d'activation RIDA Lubumbashi</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Nom du Hub / Carrefour</label>
+            <label className="text-sm font-black uppercase text-gray-400 block mb-1">Nom du Hub / Carrefour</label>
             <input
               type="text"
               value={name}
@@ -65,7 +65,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onSuccess
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Ville</label>
+            <label className="text-sm font-black uppercase text-gray-400 block mb-1">Ville</label>
             <input
               type="text"
               value={city}
@@ -77,11 +77,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onSuccess
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Type de Point Terrain</label>
+            <label className="text-sm font-black uppercase text-gray-400 block mb-1">Type de Point Terrain</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as 'Standard' | 'Airport')}
-              className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00D084]"
+              className="rida-custom-select w-full"
             >
               <option value="Standard">Point Standard (Centre-ville, Carrefours, Marchés)</option>
               <option value="Airport">Aéroport / Hub Spécialisé (Luano, Gares)</option>
@@ -90,7 +90,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onSuccess
 
           <button
             type="submit"
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#00D084] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-[#032313] font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_8px_25px_rgba(0,208,132,0.3)] mt-6 transition-all"
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#00D084] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-[#032313] font-black text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_8px_25px_rgba(0,208,132,0.3)] mt-6 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Enregistrer le Hub</span>
