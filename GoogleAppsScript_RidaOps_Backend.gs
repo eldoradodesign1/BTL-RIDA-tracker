@@ -61,6 +61,7 @@ function doPost(e){
   if(p.action==='initSheets') return json_(initializeRidaOpsDatabase());
   if(p.action==='syncAll'){const result={};Object.keys(p.data||{}).forEach(t=>result[t]=syncRows_(t,p.data[t]));return json_({success:true,results:result});}
   if(p.action==='deleteRow') return json_({success:true,result:deleteRow_(p.table,p.id)});
+  if(p.action==='uploadPhoto') return json_(savePhoto_(p.base64,p.filename,p.folderName));
   return json_({success:false,error:'Action inconnue'});
  }catch(err){return json_({success:false,error:String(err)});}
 }
@@ -86,6 +87,21 @@ function syncRows_(table,rows){
   if(at>=0)sh.getRange(at+2,1,1,vals.length).setValues([vals]);else sh.appendRow(vals);count++;
  });
  return count;
+}
+
+function savePhoto_(base64,filename,folderName){
+ if(!base64)return {success:false,error:'Photo manquante'};
+ try{
+  const name=folderName||'RIDA_OPS_Uploads';
+  const it=DriveApp.getFoldersByName(name);
+  const folder=it.hasNext()?it.next():DriveApp.createFolder(name);
+  const parts=String(base64).split(',');
+  const raw=parts.length>1?parts[1]:parts[0];
+  const mime=(parts[0].match(/data:(.*?);/)||[])[1]||'image/jpeg';
+  const file=folder.createFile(Utilities.newBlob(Utilities.base64Decode(raw),mime,filename||('photo_'+Date.now()+'.jpg')));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW);
+  return {success:true,url:'https://drive.google.com/uc?export=view&id='+file.getId(),driveUrl:file.getUrl(),fileId:file.getId()};
+ }catch(err){return {success:false,error:String(err)}}
 }
 
 function deleteRow_(table,id){
