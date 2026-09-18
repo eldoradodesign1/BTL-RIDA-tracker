@@ -547,6 +547,17 @@ export function saveUser(user: Omit<User, 'id'>): User {
   return newUser;
 }
 
+export function deleteUserLocal(userId: string): boolean {
+  const users = getUsers();
+  const target = users.find(u => u.id === userId);
+  if (!target) return false;
+  // Suppression locale volontairement explicite : la synchronisation distante
+  // doit être traitée par l’API de gestion des utilisateurs avant d’effacer la source.
+  saveItem(STORAGE_KEYS.USERS, users.filter(u => u.id !== userId));
+  emitAppToast(`Utilisateur supprimé : ${target.name}.`);
+  return true;
+}
+
 export async function refreshUsersFromGoogleSheets(): Promise<void> {
   const users = await fetchTableFromGoogleSheets<User>('users');
   if (users.length) saveUsers(users);
