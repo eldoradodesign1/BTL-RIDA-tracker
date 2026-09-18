@@ -87,16 +87,10 @@ function AgentHome({user,leads,checkins,reports,onAdd,onReport,onRefresh}:{user:
     <div className="ops-two-col">
       <section className="ops-panel action-panel">
         <div className="panel-head"><div><span className="ops-eyebrow">ACTION IMMÉDIATE</span><h2>Votre poste de travail</h2></div><button className="icon-button" onClick={onRefresh}><RefreshCw size={16}/></button></div>
-        <div className="agent-command-grid">
-          <button className={`agent-command ${todayIn?'done':''}`} disabled={!!todayIn} onClick={()=>captureAttendance(user,'IN',onRefresh)} aria-label={todayIn?'Arrivée enregistrée':'Enregistrer l’arrivée'} title={todayIn?'Arrivée enregistrée':'Enregistrer l’arrivée'}>
-            <MapPin size={34}/><span>{todayIn?'✓':'IN'}</span>
-          </button>
-          <button className={`agent-command report-command ${closed?'done':''}`} disabled={!todayIn||closed} onClick={onReport} aria-label="Présenter le rapport et clôturer la journée" title="Rapport / clôture">
-            <FileText size={34}/><span>{closed?'✓':'RAPPORT'}</span>
-          </button>
-        </div>
-        <div className="agent-secondary-actions">
-          <button className="field-action primary" disabled={!todayIn||closed} onClick={onAdd} aria-label="Enregistrer un client" title="Enregistrer un client"><span className="field-action-icon"><Plus size={24}/></span><span><b>Client</b><small>Nouvelle activité</small></span></button>
+        {!todayIn&&<button className="agent-checkin-command" onClick={()=>captureAttendance(user,'IN',onRefresh)} aria-label="Enregistrer l’arrivée" title="Enregistrer l’arrivée"><MapPin size={34}/></button>}
+        {todayIn&&<div className="agent-command-grid">
+          <button className="agent-command client-command" disabled={closed} onClick={onAdd} aria-label="Enregistrer un client" title="Enregistrer un client"><Plus size={36}/></button>
+          <button className={`agent-command report-command ${closed?'done':''}`} disabled={closed} onClick={onReport} aria-label="Présenter le rapport et clôturer la journée" title="Rapport / clôture"><FileText size={36}/></button>
         </div>
       </section>
       <section className="ops-panel">
