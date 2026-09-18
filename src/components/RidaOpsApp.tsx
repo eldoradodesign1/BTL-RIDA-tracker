@@ -225,7 +225,7 @@ export const RidaOpsApp:React.FC<Props>=({user,users,shops,online,syncPendingCou
         {isAdmin&&page==='overview'&&<AdminOverview users={users} leads={leads} checkins={checkins} reports={reports} role={user.role}/>}
         {isAdmin&&page==='people'&&<PeopleView users={users} onAdd={()=>setUserOpen(true)} onRefresh={()=>onRefresh(true)}/>}
         {isAdmin&&page==='campaigns'&&<div className="ops-page"><SectionTitle eyebrow="ORGANISATION" title="Campagnes" description="Les espaces de travail opérationnels."/><section className="ops-panel campaign-card"><div className="campaign-card-mark">R</div><div><span className="ops-eyebrow">CAMPAGNE ACTIVE</span><h2>RIDA · Lubumbashi</h2><p>Installation et acquisition · campagne terrain</p></div><StatusPill status="Active"/><div className="campaign-details"><span><b>Ville</b>Lubumbashi</span><span><b>Statut</b>Active</span><span><b>Type</b>Acquisition</span><span><b>Données</b>Google Sheets</span></div></section></div>}
-        {isAdmin&&page==='assignments'&&<PeopleView users={users.filter(u=>u.role==='agent'||u.role==='supervisor')} onAdd={()=>setUserOpen(true)}/>}
+        {isAdmin&&page==='assignments'&&<PeopleView users={users.filter(u=>u.role==='agent'||u.role==='supervisor')} onAdd={()=>setUserOpen(true)} onRefresh={()=>onRefresh(true)}/>}
         {isAdmin&&page==='field'&&<TeamView user={users.find(u=>u.role==='supervisor')||user} users={users} shops={shops} leads={leads} checkins={checkins} onOpenAgent={openAgent}/>}
         {isAdmin&&page==='reports'&&<ArchiveView leads={leads} reports={reports} users={users}/>}
         {isAdmin&&page==='archive'&&<ArchiveView leads={leads} reports={reports} users={users}/>}
