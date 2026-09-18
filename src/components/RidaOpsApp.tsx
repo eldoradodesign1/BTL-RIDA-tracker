@@ -94,7 +94,7 @@ function AgentHome({user,leads,checkins,reports,onAdd,onReport,onRefresh}:{user:
         {todayIn&&<div className="agent-command-grid">
           <button className="agent-command client-command" disabled={closed} onClick={onAdd} aria-label="Enregistrer un client" title="Enregistrer un client"><Plus size={36}/></button>
           <button className={`agent-command report-command ${closed?'done':''}`} disabled={closed} onClick={onReport} aria-label="Présenter le rapport et clôturer la journée" title="Rapport / clôture"><FileText size={36}/></button>
-        </div>
+        </div>}
       </section>
       <section className="ops-panel">
         <div className="panel-head"><div><span className="ops-eyebrow">PROGRESSION</span><h2>Objectif quotidien</h2></div><Target size={18}/></div>
