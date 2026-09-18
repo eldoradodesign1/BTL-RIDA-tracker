@@ -147,36 +147,16 @@ export const SimulationBar: React.FC<SimulationBarProps> = ({
             })}
           </div>
 
-          {/* User selector dropdown */}
           <div className={`relative ${isExpanded ? 'block' : 'hidden md:block'}`}>
-            <select
-              value={effectiveUser.id}
-              onChange={(e) => onSimulateUserChange(e.target.value)}
-              className="bg-zinc-900 border border-white/20 text-white rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-emerald-400 transition-all cursor-pointer max-w-[170px] sm:max-w-[210px] truncate shadow-inner"
-              title="Choisir un profil d'utilisateur spécifique"
-            >
-              <optgroup label="Agents de Terrain (RIDA & Merchant)">
-                {users.filter(u => u.role === 'agent').map((u) => (
-                  <option key={u.id} value={u.id} className="bg-zinc-900 text-white">
-                    {u.name} (Agent)
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Superviseurs">
-                {users.filter(u => u.role === 'supervisor').map((u) => (
-                  <option key={u.id} value={u.id} className="bg-zinc-900 text-white">
-                    {u.name} (Superviseur)
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Administrateurs & Direction">
-                {users.filter(u => u.role === 'admin' || u.role === 'super_admin').map((u) => (
-                  <option key={u.id} value={u.id} className="bg-zinc-900 text-white">
-                    {u.name} ({u.role})
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+            <div className="sim-user-picker">
+              <UserIcon size={15}/>
+              <button type="button" className="sim-user-trigger" title="Choisir un profil" onClick={()=>setSearchFilter(searchFilter==='__open__'?'':'__open__')}>
+                <span>{effectiveUser.name}</span><ChevronDown size={14}/>
+              </button>
+              {searchFilter==='__open__'&&<div className="sim-user-menu">
+                {users.slice(0,30).map(u=><button key={u.id} type="button" onClick={()=>{onSimulateUserChange(u.id);setSearchFilter('')}}><UserIcon size={13}/><span>{u.name}</span><small>{u.role}</small></button>)}
+              </div>}
+            </div>
           </div>
 
           {/* Reset Simulation button */}
