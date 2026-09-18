@@ -141,8 +141,7 @@ export const SimulationBar: React.FC<SimulationBarProps> = ({
                   title={`Simuler le profil ${label}`}
                 >
                   {icon}
-                  <span className="hidden md:inline font-bold">{label}</span>
-                  <span className="md:hidden font-bold">{badge}</span>
+                  <span className="sr-only">{label}</span>
                 </button>
               );
             })}
@@ -188,7 +187,7 @@ export const SimulationBar: React.FC<SimulationBarProps> = ({
               title="Réinitialiser et quitter la simulation"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Quitter</span>
+
             </button>
           )}
 
